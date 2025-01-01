@@ -1,6 +1,7 @@
 #!/bin/bash
 # https://github.com/p7e4/reinstall
 
+set -e
 hostname=$(hostname)
 
 while getopts "p:k:s:n:" opt; do
@@ -29,14 +30,18 @@ if [ -z "$PASSWORD" ] && [ -z "$SSHKEY" ]; then
   exit 1
 fi
 
-if [ "$SYSTEM" != "debian" ] && [ "$SYSTEM" != "ubuntu" ]; then
-  echo "Error: -s parameter must be one of debian, ubuntu"
+if [ "$SYSTEM" != "debian" ] && [ "$SYSTEM" != "ubuntu" ] && [ "$SYSTEM" != "fedora" ] && [ "$SYSTEM" != "rocky" ]; then
+  echo "Error: -s parameter must be one of debian, ubuntu, fedora, rocky"
   exit 1
+fi
+
+if [ -f /etc/default/kexec ]; then
+  sed -i 's/LOAD_KEXEC=true/LOAD_KEXEC=false/' /etc/default/kexec
 fi
 
 apt update && apt install -y qemu-utils jq
 
-country=$(curl -s https://ipinfo.io/ | jq -r ".country")
+country=$(curl -s "https://ipinfo.io/" | jq -r ".country")
 echo "server country: $country"
 
 if [ "$country" == "CN" ]; then
@@ -57,6 +62,10 @@ apt:
   primary:
     - arches: [default]
       uri: https://mirrors.ustc.edu.cn/ubuntu/"
+  elif [ "$SYSTEM" == "fedora" ]; then
+    imgUrl="https://mirrors.ustc.edu.cn/fedora/releases/41/Cloud/x86_64/images/Fedora-Cloud-Base-Generic-41-1.4.x86_64.qcow2"
+  elif [ "$SYSTEM" == "rocky" ]; then
+    imgUrl="https://mirrors.ustc.edu.cn/rocky/9/images/x86_64/Rocky-9-GenericCloud-Base.latest.x86_64.qcow2"
   fi
   alpineHost="mirrors.nyist.edu.cn"
   dns="223.5.5.5, 223.6.6.6"
@@ -65,26 +74,27 @@ else
     imgUrl="https://cdimage.debian.org/images/cloud/bookworm/latest/debian-12-genericcloud-amd64.qcow2"
   elif [ "$SYSTEM" == "ubuntu" ]; then
     imgUrl="https://cloud-images.ubuntu.com/noble/current/noble-server-cloudimg-amd64.img"
+  elif [ "$SYSTEM" == "fedora" ]; then
+    imgUrl="https://download.fedoraproject.org/pub/fedora/linux/releases/41/Cloud/x86_64/images/Fedora-Cloud-Base-UEFI-UKI-41-1.4.x86_64.qcow2"
+  elif [ "$SYSTEM" == "rocky" ]; then
+    imgUrl="https://dl.rockylinux.org/pub/rocky/9/images/x86_64/Rocky-9-GenericCloud-Base.latest.x86_64.qcow2"
   fi
   alpineHost="dl-cdn.alpinelinux.org"
   dns="1.1.1.1, 8.8.8.8"
 fi
 
-if [ -d "/reinstall" ]; then
- rm -rf /reinstall
-fi
-
+rm -rf /reinstall
 mkdir /reinstall && cd /reinstall
 
 curl -o vmlinuz https://$alpineHost/alpine/latest-stable/releases/x86_64/netboot/vmlinuz-virt
 curl -o initrd https://$alpineHost/alpine/latest-stable/releases/x86_64/netboot/initramfs-virt
-curl -OA reinstall $imgUrl
+curl -OLA reinstall $imgUrl
 
 filename=$(basename $imgUrl)
 modprobe nbd
-qemu-nbd -c /dev/nbd0 $filename || exit 1
+qemu-nbd -c /dev/nbd0 $filename
 sleep 1
-mount /dev/nbd0p1 /mnt || exit 1
+mount $(fdisk -l | grep -E "/dev/nbd0p.*Linux (root|filesystem)" | awk '{print $1}') /mnt
 
 if [ "$SSHKEY" ]; then
   echo "using ssh key auth, key: $SSHKEY"
@@ -109,7 +119,13 @@ runcmd:
   - sed -i 's/^#\?PermitRootLogin.*/PermitRootLogin yes/g' /etc/ssh/sshd_config"
 fi
 
-cat > /mnt/etc/cloud/cloud.cfg.d/custom.cfg << EOF
+if [ "$SYSTEM" == "fedora" ]; then
+  cloudFilePath=/mnt/root/etc/cloud/cloud.cfg.d/custom.cfg
+else
+  cloudFilePath=/mnt/etc/cloud/cloud.cfg.d/custom.cfg
+fi
+
+cat > $cloudFilePath << EOF
 #cloud-config
 datasource_list: [None]
 hostname: $hostname

@@ -6,6 +6,8 @@ Reinstall your VPS with cloud image
 
 - debian
 - ubuntu
+- fedora
+- rocky
 
 The current system needs to be **debian/ubuntu**
 

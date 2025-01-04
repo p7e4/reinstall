@@ -112,8 +112,8 @@ chpasswd:
   expire: false
   users:
   - name: root
-    password: $PASSWORD
-    type: text
+      password: $PASSWORD
+      type: text
 runcmd:
   - rm /etc/ssh/sshd_config.d/*
   - sed -i 's/^#\?PermitRootLogin.*/PermitRootLogin yes/g' /etc/ssh/sshd_config"
@@ -137,6 +137,7 @@ network:
       match:
         name: "e*"
       dhcp4: true
+      dhcp6: false
       dhcp4-overrides:
         use-dns: no
       nameservers:

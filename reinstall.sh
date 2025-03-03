@@ -111,7 +111,7 @@ if [ "$PASSWORD" ]; then
 chpasswd:
   expire: false
   users:
-  - name: root
+    - name: root
       password: $PASSWORD
       type: text
 runcmd:

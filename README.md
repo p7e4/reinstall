@@ -21,19 +21,21 @@ Only the latest versions of the systems are supported. If you need an older vers
     wget https://raw.githubusercontent.com/p7e4/reinstall/refs/heads/main/reinstall.sh
     ```
 
-2. **Use SSH public key for authentication:**
+2. **Run the script:**
+
+    Use SSH public key for authentication:
 
     ```sh
     bash reinstall.sh -k "ssh-rsa your_key" -s debian
     ```
 
-3. **Use password for authentication:**
+    Or use password for authentication:
 
     ```sh
     bash reinstall.sh -p your_password -s debian
     ```
 
-4. **Set up hostname:**
+    Optionally, you can set up the hostname:
 
     ```sh
     bash reinstall.sh -p your_password -s debian -n your_hostname

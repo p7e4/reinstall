@@ -1,24 +1,24 @@
 # Reinstall
 
-Easily reinstall your VPS with a cloud image.
+A simple script to reinstall your VPS with cloud image.
 
 ## Supported Target Systems
 
-- Debian
-- Ubuntu
-- Fedora
-- Rocky
+| System    | Version |
+|-----------|---------|
+| Debian    | 12      |
+| Ubuntu    | 24      |
+| Fedora    | 41      |
+| Rocky     | 9       |
 
-**Note:** The current system must be **Debian/Ubuntu**.
-
-Only the latest versions of the systems are supported. If you need an older version, please modify the script manually.
+The current system must be **Debian 12/Ubuntu 22+**.
 
 ## Usage
 
 1. **Download the `reinstall.sh` script:**
 
     ```sh
-    wget https://raw.githubusercontent.com/p7e4/reinstall/refs/heads/main/reinstall.sh
+    curl -O https://raw.githubusercontent.com/p7e4/reinstall/refs/heads/main/reinstall.sh
     ```
 
 2. **Run the script:**

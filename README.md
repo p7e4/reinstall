@@ -4,14 +4,15 @@ A simple script to reinstall your VPS with cloud image.
 
 ## Supported Target Systems
 
-| System    | Version |
-|-----------|---------|
-| Debian    | 12      |
-| Ubuntu    | 24      |
-| Fedora    | 41      |
-| Rocky     | 9       |
+| System    | Version | Size |
+|-----------|---------|------|
+| Debian    | 12      | 331M |
+| Ubuntu    | 24.04   | 581M |
+| Fedora    | 41      | 468M |
+| Rocky     | 9       | 581M |
+| Archlinux | latest  | 525M |
 
-The current system must be **Debian 12/Ubuntu 22+**.
+The current system must be **Debian 11/Ubuntu 20.04 or higher**.
 
 ## Usage
 

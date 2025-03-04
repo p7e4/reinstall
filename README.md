@@ -12,7 +12,7 @@ A simple script to reinstall your VPS with cloud image.
 | Rocky     | 9       | 581M |
 | Archlinux | latest  | 525M |
 
-The current system must be **Debian 11/Ubuntu 20.04 or higher**.
+The current system must be **Debian 10/Ubuntu 20.04 or higher**.
 
 ## Usage
 

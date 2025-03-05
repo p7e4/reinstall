@@ -2,15 +2,14 @@
 
 A simple script to reinstall your VPS with cloud image.
 
-## Supported Target Systems
+## Target Systems
 
-| System    | Version | Size |
-|-----------|---------|------|
-| Debian    | 12      | 331M |
-| Ubuntu    | 24.04   | 581M |
-| Fedora    | 41      | 468M |
-| Rocky     | 9       | 581M |
-| Archlinux | latest  | 525M |
+| System        | Version | Image                                             | Size |
+|---------------|---------|---------------------------------------------------|------|
+| Debian        | 12      | debian-12-genericcloud-amd64.qcow2                | 331M |
+| Fedora        | 41      | Fedora-Cloud-Base-Generic-41-1.4.x86_64.qcow2     | 468M |
+| Rocky         | 9       | Rocky-9-GenericCloud-Base.latest.x86_64.qcow2     | 581M |
+| Ubuntu        | 24.04   | noble-server-cloudimg-amd64.img                   | 581M |
 
 The current system must be **Debian 10/Ubuntu 20.04 or higher**.
 

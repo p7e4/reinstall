@@ -1,41 +1,50 @@
-# reinstall
+# Reinstall
 
-Reinstall your VPS with cloud image
+A simple script to reinstall your VPS with cloud image.
 
-## Support system
+## Target Systems
 
-- debian
-- ubuntu
-- fedora
-- rocky
+| System        | Version | Image                                             | Size |
+|---------------|---------|---------------------------------------------------|------|
+| Debian        | 12      | debian-12-genericcloud-amd64.qcow2                | 331M |
+| Ubuntu        | 24.04   | noble-server-cloudimg-amd64.img                   | 581M |
+| Fedora        | 41      | Fedora-Cloud-Base-Generic-41-1.4.x86_64.qcow2     | 468M |
+| Rocky         | 9       | Rocky-9-GenericCloud-Base.latest.x86_64.qcow2     | 581M |
+| AlmaLinux     | 9       | AlmaLinux-9-GenericCloud-latest.x86_64.qcow2      | 468M |
+| CentOS Stream | 10      | CentOS-Stream-GenericCloud-10-latest.x86_64.qcow2 | 904M |
+| Archlinux     | rolling | Arch-Linux-x86_64-cloudimg.qcow2                  | 525M |
 
-The current system needs to be **debian/ubuntu**
-
-Only support the latest version of the system, if you want old version, please change the script manually.
-
+The current system must be **Debian 10/Ubuntu 18 or higher**.
 
 ## Usage
 
-download `reinstall.sh`
+1. **Download the `reinstall.sh` script:**
 
-`wget https://raw.githubusercontent.com/p7e4/reinstall/refs/heads/main/reinstall.sh`
+    ```sh
+    curl -O https://raw.githubusercontent.com/p7e4/reinstall/refs/heads/main/reinstall.sh
+    ```
 
-use ssh public key for authentication
+2. **Run the script:**
 
-`bash reinstall.sh -k "ssh-rsa your_key" -s debian`
+    Use SSH public key for authentication:
 
-use password for authentication
+    ```sh
+    bash reinstall.sh -k "ssh-rsa your_key" -s debian
+    ```
 
-`bash reinstall.sh -p your_password -s debian`
+    Or use password for authentication:
 
-setup hostname
+    ```sh
+    bash reinstall.sh -p your_password -s debian
+    ```
 
-`bash reinstall.sh -p your_password -s debian -n your_hostname`
+    Optionally, you can set up the hostname:
 
+    ```sh
+    bash reinstall.sh -p your_password -s debian -n your_hostname
+    ```
 
-## Related repo
+## Related Repositories
 
 - [bin456789/reinstall](https://github.com/bin456789/reinstall)
 - [bohanyang/debi](https://github.com/bohanyang/debi)
-
-

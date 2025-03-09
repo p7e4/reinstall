@@ -1,8 +1,6 @@
 #!/bin/bash
 # https://github.com/p7e4/reinstall
-
 set -e
-hostname=$(hostname)
 
 while getopts "p:k:s:n:" opt; do
   case $opt in
@@ -30,9 +28,20 @@ if [ -z "$PASSWORD" ] && [ -z "$SSHKEY" ]; then
   exit 1
 fi
 
-if [ "$SYSTEM" != "debian" ] && [ "$SYSTEM" != "ubuntu" ] && [ "$SYSTEM" != "fedora" ] && [ "$SYSTEM" != "rocky" ]; then
-  echo "Error: -s parameter must be one of debian, ubuntu, fedora, rocky"
+SYSTEM=$(echo "$SYSTEM" | tr '[:upper:]' '[:lower:]')
+if [ "$SYSTEM" != "debian" ] && \
+   [ "$SYSTEM" != "ubuntu" ] && \
+   [ "$SYSTEM" != "fedora" ] && \
+   [ "$SYSTEM" != "rocky" ] && \
+   [ "$SYSTEM" != "almalinux" ] && \
+   [ "$SYSTEM" != "centos" ] && \
+   [ "$SYSTEM" != "archlinux" ]; then
+  echo "Error: -s parameter must be one of debian, ubuntu, fedora, rocky, almalinux, centos, archlinux"
   exit 1
+fi
+
+if [ -z "$hostname" ]; then
+  hostname="vm-$SYSTEM"
 fi
 
 if [ -f /etc/default/kexec ]; then
@@ -46,7 +55,22 @@ echo "server country: $country"
 
 if [ "$country" == "CN" ]; then
   if [ "$SYSTEM" == "debian" ]; then
-    imgUrl="https://mirrors.ustc.edu.cn/debian-cdimage/cloud/bookworm/latest/debian-12-genericcloud-amd64.qcow2"
+    imgUrl="https://mirrors.nju.edu.cn/debian-cdimage/cloud/bookworm/latest/debian-12-genericcloud-amd64.qcow2"
+# deb822 require cloud-init >= 23.4
+# debian 12 current: /usr/bin/cloud-init 22.4.2
+# apt:
+#   sources_list: |
+#     Types: deb deb-src
+#     URIs: https://mirrors.ustc.edu.cn/debian/
+#     Suites: bookworm bookworm-updates bookworm-backports
+#     Components: main
+#     Signed-By: /usr/share/keyrings/debian-archive-keyring.gpg
+#
+#     Types: deb deb-src
+#     URIs: https://mirrors.ustc.edu.cn/debian-security/
+#     Suites: bookworm-security
+#     Components: main
+#     Signed-By: /usr/share/keyrings/debian-archive-keyring.gpg
     aptMirror="
 apt:
   primary:
@@ -56,28 +80,53 @@ apt:
     - arches: [default]
       uri: https://mirrors.ustc.edu.cn/debian-security/"
   elif [ "$SYSTEM" == "ubuntu" ]; then
-    imgUrl="https://mirrors.ustc.edu.cn/ubuntu-cloud-images/noble/current/noble-server-cloudimg-amd64.img"
+    imgUrl="https://mirrors.nju.edu.cn/ubuntu-cloud-images/noble/current/noble-server-cloudimg-amd64.img"
+    shaSum="https://mirrors.nju.edu.cn/ubuntu-cloud-images/noble/current/SHA256SUMS"
     aptMirror="
 apt:
-  primary:
-    - arches: [default]
-      uri: https://mirrors.ustc.edu.cn/ubuntu/"
+  sources_list: |
+    Types: deb
+    URIs: https://mirrors.ustc.edu.cn/ubuntu/
+    Suites: noble noble-updates noble-security noble-backports
+    Components: main universe restricted multiverse
+    Signed-By: /usr/share/keyrings/ubuntu-archive-keyring.gpg"
   elif [ "$SYSTEM" == "fedora" ]; then
-    imgUrl="https://mirrors.ustc.edu.cn/fedora/releases/41/Cloud/x86_64/images/Fedora-Cloud-Base-Generic-41-1.4.x86_64.qcow2"
+    imgUrl="https://mirrors.nju.edu.cn/fedora/releases/41/Cloud/x86_64/images/Fedora-Cloud-Base-Generic-41-1.4.x86_64.qcow2"
   elif [ "$SYSTEM" == "rocky" ]; then
-    imgUrl="https://mirrors.ustc.edu.cn/rocky/9/images/x86_64/Rocky-9-GenericCloud-Base.latest.x86_64.qcow2"
+    imgUrl="https://mirrors.nju.edu.cn/rocky/9/images/x86_64/Rocky-9-GenericCloud-Base.latest.x86_64.qcow2"
+    shaSum="https://mirrors.nju.edu.cn/rocky/9/images/x86_64/CHECKSUM"
+  elif [ "$SYSTEM" == "almalinux" ]; then
+    imgUrl="https://mirrors.nju.edu.cn/almalinux/9/cloud/x86_64/images/AlmaLinux-9-GenericCloud-latest.x86_64.qcow2"
+    shaSum="https://mirrors.nju.edu.cn/almalinux/9/cloud/x86_64/images/CHECKSUM"
+  elif [ "$SYSTEM" == "centos" ]; then
+    imgUrl="https://mirrors.nju.edu.cn/centos-cloud/centos/10-stream/x86_64/images/CentOS-Stream-GenericCloud-10-latest.x86_64.qcow2"
+    shaSum="https://mirrors.nju.edu.cn/centos-cloud/centos/10-stream/x86_64/images/CentOS-Stream-GenericCloud-10-latest.x86_64.qcow2.SHA256SUM"
+  elif [ "$SYSTEM" == "archlinux" ]; then
+    imgUrl="https://mirrors.nju.edu.cn/archlinux/images/latest/Arch-Linux-x86_64-cloudimg.qcow2"
+    shaSum="https://mirrors.nju.edu.cn/archlinux/images/latest/Arch-Linux-x86_64-cloudimg.qcow2.SHA256"
   fi
-  alpineHost="mirrors.nyist.edu.cn"
+  alpineHost="mirrors.nju.edu.cn"
   dns="223.5.5.5, 223.6.6.6"
 else
   if [ "$SYSTEM" == "debian" ]; then
     imgUrl="https://cdimage.debian.org/images/cloud/bookworm/latest/debian-12-genericcloud-amd64.qcow2"
   elif [ "$SYSTEM" == "ubuntu" ]; then
     imgUrl="https://cloud-images.ubuntu.com/noble/current/noble-server-cloudimg-amd64.img"
+    shaSum="https://cloud-images.ubuntu.com/noble/current/SHA256SUMS"
   elif [ "$SYSTEM" == "fedora" ]; then
     imgUrl="https://download.fedoraproject.org/pub/fedora/linux/releases/41/Cloud/x86_64/images/Fedora-Cloud-Base-UEFI-UKI-41-1.4.x86_64.qcow2"
   elif [ "$SYSTEM" == "rocky" ]; then
     imgUrl="https://dl.rockylinux.org/pub/rocky/9/images/x86_64/Rocky-9-GenericCloud-Base.latest.x86_64.qcow2"
+    shaSum="https://dl.rockylinux.org/pub/rocky/9/images/x86_64/CHECKSUM"
+  elif [ "$SYSTEM" == "almalinux" ]; then
+    imgUrl="https://repo.almalinux.org/almalinux/9/cloud/x86_64/images/AlmaLinux-9-GenericCloud-latest.x86_64.qcow2"
+    shaSum="https://repo.almalinux.org/almalinux/9/cloud/x86_64/images/CHECKSUM"
+  elif [ "$SYSTEM" == "centos" ]; then
+    imgUrl="https://cloud.centos.org/centos/10-stream/x86_64/images/CentOS-Stream-GenericCloud-10-latest.x86_64.qcow2"
+    shaSum="https://cloud.centos.org/centos/10-stream/x86_64/images/CentOS-Stream-GenericCloud-10-latest.x86_64.qcow2.SHA256SUM"
+  elif [ "$SYSTEM" == "archlinux" ]; then
+    imgUrl="https://geo.mirror.pkgbuild.com/images/latest/Arch-Linux-x86_64-cloudimg.qcow2"
+    shaSum="https://geo.mirror.pkgbuild.com/images/latest/Arch-Linux-x86_64-cloudimg.qcow2.SHA256"
   fi
   alpineHost="dl-cdn.alpinelinux.org"
   dns="1.1.1.1, 8.8.8.8"
@@ -88,13 +137,18 @@ mkdir /reinstall && cd /reinstall
 
 curl -o vmlinuz https://$alpineHost/alpine/latest-stable/releases/x86_64/netboot/vmlinuz-virt
 curl -o initrd https://$alpineHost/alpine/latest-stable/releases/x86_64/netboot/initramfs-virt
-curl -OLA reinstall $imgUrl
+curl -OA reinstall $imgUrl
+imageFile=$(basename $imgUrl)
 
-filename=$(basename $imgUrl)
+if [ "$shaSum" ]; then
+  curl -A reinstall -o SHA256SUMS $shaSum
+  sha256sum -c SHA256SUMS --ignore-missing 2>&1 | grep OK || (echo "$imageFile sha256 verify faile!" && exit 1)
+fi
+
 modprobe nbd
-qemu-nbd -c /dev/nbd0 $filename
+qemu-nbd -c /dev/nbd0 $imageFile
 sleep 1
-mount $(fdisk -l | grep -E "/dev/nbd0p.*Linux (root|filesystem)" | awk '{print $1}') /mnt
+mount $(fdisk -l | grep -E "/dev/nbd0p.*Linux (root|filesystem)" | awk 'END {print $1}') /mnt
 
 if [ "$SSHKEY" ]; then
   echo "using ssh key auth, key: $SSHKEY"
@@ -108,15 +162,16 @@ fi
 if [ "$PASSWORD" ]; then
   echo "using password auth, password: $PASSWORD"
   passAuth="
+ssh_pwauth: true
 chpasswd:
   expire: false
   users:
-  - name: root
+    - name: root
       password: $PASSWORD
       type: text
 runcmd:
-  - rm /etc/ssh/sshd_config.d/*
-  - sed -i 's/^#\?PermitRootLogin.*/PermitRootLogin yes/g' /etc/ssh/sshd_config"
+  - sed -i 's/^#PermitRootLogin.*/PermitRootLogin yes/g' /etc/ssh/sshd_config
+  - lsb_release -c | grep noble || systemctl restart sshd"
 fi
 
 if [ "$SYSTEM" == "fedora" ]; then
@@ -130,12 +185,13 @@ cat > $cloudFilePath << EOF
 datasource_list: [None]
 hostname: $hostname
 timezone: Asia/Shanghai
+package_update: true
 network:
   version: 2
   ethernets:
     interface:
       match:
-        name: "e*"
+        name: e*
       dhcp4: true
       dhcp6: false
       dhcp4-overrides:
@@ -144,6 +200,11 @@ network:
         addresses: [$dns]\
 $aptMirror$sshAuth$passAuth
 EOF
+
+# systemd-networkd match won't work
+if [ "$SYSTEM" == "archlinux" ]; then
+  sed -i "6,17d" $cloudFilePath
+fi
 
 umount /mnt && qemu-nbd -d /dev/nbd0
 
@@ -157,9 +218,9 @@ mount / -o remount,size=100%
 echo -e "\nhttps://${alpineHost}/alpine/latest-stable/community/" >> /etc/apk/repositories
 apk add --no-cache util-linux qemu-img
 mount $disk /mnt
-cp /mnt/reinstall/$filename ./
+cp /mnt/reinstall/$imageFile ./
 umount /mnt
-qemu-img dd if=$filename of=$(echo $disk | sed -E 's/[0-9]+$//') bs=1M
+qemu-img dd if=$imageFile of=$(echo $disk | sed -E 's/[0-9]+$//') bs=1M
 reboot
 EOF
 chmod +x post.start

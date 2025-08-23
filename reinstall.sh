@@ -55,33 +55,24 @@ echo "server country: $country"
 
 if [ "$country" == "CN" ]; then
   if [ "$SYSTEM" == "debian" ]; then
-    imgUrl="https://mirrors.nju.edu.cn/debian-cdimage/cloud/bookworm/latest/debian-12-genericcloud-amd64.qcow2"
-# deb822 require cloud-init >= 23.4
-# debian 12 current: /usr/bin/cloud-init 22.4.2
-# apt:
-#   sources_list: |
-#     Types: deb deb-src
-#     URIs: https://mirrors.ustc.edu.cn/debian/
-#     Suites: bookworm bookworm-updates bookworm-backports
-#     Components: main
-#     Signed-By: /usr/share/keyrings/debian-archive-keyring.gpg
-#
-#     Types: deb deb-src
-#     URIs: https://mirrors.ustc.edu.cn/debian-security/
-#     Suites: bookworm-security
-#     Components: main
-#     Signed-By: /usr/share/keyrings/debian-archive-keyring.gpg
+    imgUrl="https://mirrors.nju.edu.cn/debian-cdimage/cloud/trixie/latest/debian-13-genericcloud-amd64.qcow2"
     aptMirror="
 apt:
-  primary:
-    - arches: [default]
-      uri: https://mirrors.ustc.edu.cn/debian/
-  security:
-    - arches: [default]
-      uri: https://mirrors.ustc.edu.cn/debian-security/"
+  sources_list: |
+    Types: deb deb-src
+    URIs: https://mirrors.ustc.edu.cn/debian/
+    Suites: bookworm bookworm-updates bookworm-backports
+    Components: main
+    Signed-By: /usr/share/keyrings/debian-archive-keyring.gpg
+
+    Types: deb deb-src
+    URIs: https://mirrors.ustc.edu.cn/debian-security/
+    Suites: bookworm-security
+    Components: main
+    Signed-By: /usr/share/keyrings/debian-archive-keyring.gpg"
   elif [ "$SYSTEM" == "ubuntu" ]; then
     imgUrl="https://mirrors.nju.edu.cn/ubuntu-cloud-images/noble/current/noble-server-cloudimg-amd64.img"
-    shaSum="https://mirrors.nju.edu.cn/ubuntu-cloud-images/noble/current/SHA256SUMS"
+    shaSum="https://cloud-images.ubuntu.com/noble/current/SHA256SUMS"
     aptMirror="
 apt:
   sources_list: |
@@ -91,7 +82,7 @@ apt:
     Components: main universe restricted multiverse
     Signed-By: /usr/share/keyrings/ubuntu-archive-keyring.gpg"
   elif [ "$SYSTEM" == "fedora" ]; then
-    imgUrl="https://mirrors.nju.edu.cn/fedora/releases/41/Cloud/x86_64/images/Fedora-Cloud-Base-Generic-41-1.4.x86_64.qcow2"
+    imgUrl="https://mirrors.nju.edu.cn/fedora/releases/42/Cloud/x86_64/images/Fedora-Cloud-Base-Generic-42-1.1.x86_64.qcow2"
   elif [ "$SYSTEM" == "rocky" ]; then
     imgUrl="https://mirrors.nju.edu.cn/rocky/9/images/x86_64/Rocky-9-GenericCloud-Base.latest.x86_64.qcow2"
     shaSum="https://mirrors.nju.edu.cn/rocky/9/images/x86_64/CHECKSUM"
@@ -109,12 +100,12 @@ apt:
   dns="223.5.5.5, 223.6.6.6"
 else
   if [ "$SYSTEM" == "debian" ]; then
-    imgUrl="https://cdimage.debian.org/images/cloud/bookworm/latest/debian-12-genericcloud-amd64.qcow2"
+    imgUrl="https://cdimage.debian.org/images/cloud/trixie/latest/debian-13-genericcloud-amd64.qcow2"
   elif [ "$SYSTEM" == "ubuntu" ]; then
     imgUrl="https://cloud-images.ubuntu.com/noble/current/noble-server-cloudimg-amd64.img"
     shaSum="https://cloud-images.ubuntu.com/noble/current/SHA256SUMS"
   elif [ "$SYSTEM" == "fedora" ]; then
-    imgUrl="https://download.fedoraproject.org/pub/fedora/linux/releases/41/Cloud/x86_64/images/Fedora-Cloud-Base-UEFI-UKI-41-1.4.x86_64.qcow2"
+    imgUrl="https://download.fedoraproject.org/pub/fedora/linux/releases/42/Cloud/x86_64/images/Fedora-Cloud-Base-Generic-42-1.1.x86_64.qcow2"
   elif [ "$SYSTEM" == "rocky" ]; then
     imgUrl="https://dl.rockylinux.org/pub/rocky/9/images/x86_64/Rocky-9-GenericCloud-Base.latest.x86_64.qcow2"
     shaSum="https://dl.rockylinux.org/pub/rocky/9/images/x86_64/CHECKSUM"
@@ -137,7 +128,7 @@ mkdir /reinstall && cd /reinstall
 
 curl -o vmlinuz https://$alpineHost/alpine/latest-stable/releases/x86_64/netboot/vmlinuz-virt
 curl -o initrd https://$alpineHost/alpine/latest-stable/releases/x86_64/netboot/initramfs-virt
-curl -OA reinstall $imgUrl
+curl -OLA reinstall $imgUrl
 imageFile=$(basename $imgUrl)
 
 if [ "$shaSum" ]; then

@@ -1,5 +1,6 @@
 #!/bin/bash
 # https://github.com/p7e4/reinstall
+# https://cdn.jsdelivr.net/gh/p7e4/reinstall/reinstall.sh
 set -e
 
 while getopts "p:k:s:n:" opt; do
@@ -51,25 +52,19 @@ fi
 apt update && apt install -y qemu-utils jq
 
 country=$(curl -s "https://ipinfo.io/" | jq -r ".country")
-echo "server country: $country"
+echo "server location: $country"
 
 if [ "$country" == "CN" ]; then
   if [ "$SYSTEM" == "debian" ]; then
     imgUrl="https://mirrors.nju.edu.cn/debian-cdimage/cloud/trixie/latest/debian-13-genericcloud-amd64.qcow2"
     aptMirror="
 apt:
-  sources_list: |
-    Types: deb deb-src
-    URIs: https://mirrors.ustc.edu.cn/debian/
-    Suites: bookworm bookworm-updates bookworm-backports
-    Components: main
-    Signed-By: /usr/share/keyrings/debian-archive-keyring.gpg
-
-    Types: deb deb-src
-    URIs: https://mirrors.ustc.edu.cn/debian-security/
-    Suites: bookworm-security
-    Components: main
-    Signed-By: /usr/share/keyrings/debian-archive-keyring.gpg"
+  primary:
+    - arches: [default]
+      uri: https://mirrors.ustc.edu.cn/debian/
+  security:
+    - arches: [default]
+      uri: https://mirrors.ustc.edu.cn/debian-security/"
   elif [ "$SYSTEM" == "ubuntu" ]; then
     imgUrl="https://mirrors.nju.edu.cn/ubuntu-cloud-images/noble/current/noble-server-cloudimg-amd64.img"
     shaSum="https://cloud-images.ubuntu.com/noble/current/SHA256SUMS"
@@ -176,7 +171,6 @@ cat > $cloudFilePath << EOF
 datasource_list: [None]
 hostname: $hostname
 timezone: Asia/Shanghai
-package_update: true
 network:
   version: 2
   ethernets:

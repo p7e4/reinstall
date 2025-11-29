@@ -50,6 +50,7 @@ if [ -f /etc/default/kexec ]; then
 fi
 
 apt update && apt install -y qemu-utils jq
+# dnf makecache && dnf install -y qemu-img jq
 
 country=$(curl -s "https://ipinfo.io/" | jq -r ".country")
 echo "server location: $country"
@@ -77,13 +78,13 @@ apt:
     Components: main universe restricted multiverse
     Signed-By: /usr/share/keyrings/ubuntu-archive-keyring.gpg"
   elif [ "$SYSTEM" == "fedora" ]; then
-    imgUrl="https://mirrors.nju.edu.cn/fedora/releases/42/Cloud/x86_64/images/Fedora-Cloud-Base-Generic-42-1.1.x86_64.qcow2"
+    imgUrl="https://mirrors.nju.edu.cn/fedora/releases/43/Cloud/x86_64/images/Fedora-Cloud-Base-Generic-43-1.6.x86_64.qcow2"
   elif [ "$SYSTEM" == "rocky" ]; then
-    imgUrl="https://mirrors.nju.edu.cn/rocky/9/images/x86_64/Rocky-9-GenericCloud-Base.latest.x86_64.qcow2"
-    shaSum="https://mirrors.nju.edu.cn/rocky/9/images/x86_64/CHECKSUM"
+    imgUrl="https://mirrors.nju.edu.cn/rocky/10/images/x86_64/Rocky-10-GenericCloud-Base.latest.x86_64.qcow2"
+    shaSum="https://mirrors.nju.edu.cn/rocky/10/images/x86_64/CHECKSUM"
   elif [ "$SYSTEM" == "almalinux" ]; then
-    imgUrl="https://mirrors.nju.edu.cn/almalinux/9/cloud/x86_64/images/AlmaLinux-9-GenericCloud-latest.x86_64.qcow2"
-    shaSum="https://mirrors.nju.edu.cn/almalinux/9/cloud/x86_64/images/CHECKSUM"
+    imgUrl="https://mirrors.nju.edu.cn/almalinux/10/cloud/x86_64/images/AlmaLinux-9-GenericCloud-latest.x86_64.qcow2"
+    shaSum="https://mirrors.nju.edu.cn/almalinux/10/cloud/x86_64/images/CHECKSUM"
   elif [ "$SYSTEM" == "centos" ]; then
     imgUrl="https://mirrors.nju.edu.cn/centos-cloud/centos/10-stream/x86_64/images/CentOS-Stream-GenericCloud-10-latest.x86_64.qcow2"
     shaSum="https://mirrors.nju.edu.cn/centos-cloud/centos/10-stream/x86_64/images/CentOS-Stream-GenericCloud-10-latest.x86_64.qcow2.SHA256SUM"
@@ -100,13 +101,13 @@ else
     imgUrl="https://cloud-images.ubuntu.com/noble/current/noble-server-cloudimg-amd64.img"
     shaSum="https://cloud-images.ubuntu.com/noble/current/SHA256SUMS"
   elif [ "$SYSTEM" == "fedora" ]; then
-    imgUrl="https://download.fedoraproject.org/pub/fedora/linux/releases/42/Cloud/x86_64/images/Fedora-Cloud-Base-Generic-42-1.1.x86_64.qcow2"
+    imgUrl="https://download.fedoraproject.org/pub/fedora/linux/releases/43/Cloud/x86_64/images/Fedora-Cloud-Base-Generic-43-1.6.x86_64.qcow2"
   elif [ "$SYSTEM" == "rocky" ]; then
-    imgUrl="https://dl.rockylinux.org/pub/rocky/9/images/x86_64/Rocky-9-GenericCloud-Base.latest.x86_64.qcow2"
-    shaSum="https://dl.rockylinux.org/pub/rocky/9/images/x86_64/CHECKSUM"
+    imgUrl="https://dl.rockylinux.org/pub/rocky/10/images/x86_64/Rocky-10-GenericCloud-Base.latest.x86_64.qcow2"
+    shaSum="https://dl.rockylinux.org/pub/rocky/10/images/x86_64/CHECKSUM"
   elif [ "$SYSTEM" == "almalinux" ]; then
-    imgUrl="https://repo.almalinux.org/almalinux/9/cloud/x86_64/images/AlmaLinux-9-GenericCloud-latest.x86_64.qcow2"
-    shaSum="https://repo.almalinux.org/almalinux/9/cloud/x86_64/images/CHECKSUM"
+    imgUrl="https://repo.almalinux.org/almalinux/10/cloud/x86_64/images/AlmaLinux-10-GenericCloud-latest.x86_64.qcow2"
+    shaSum="https://repo.almalinux.org/almalinux/10/cloud/x86_64/images/CHECKSUM"
   elif [ "$SYSTEM" == "centos" ]; then
     imgUrl="https://cloud.centos.org/centos/10-stream/x86_64/images/CentOS-Stream-GenericCloud-10-latest.x86_64.qcow2"
     shaSum="https://cloud.centos.org/centos/10-stream/x86_64/images/CentOS-Stream-GenericCloud-10-latest.x86_64.qcow2.SHA256SUM"
@@ -132,6 +133,7 @@ if [ "$shaSum" ]; then
 fi
 
 modprobe nbd
+modprobe btrfs
 qemu-nbd -c /dev/nbd0 $imageFile
 sleep 1
 mount $(fdisk -l | grep -E "/dev/nbd0p.*Linux (root|filesystem)" | awk 'END {print $1}') /mnt
@@ -186,7 +188,7 @@ network:
 $aptMirror$sshAuth$passAuth
 EOF
 
-# systemd-networkd match won't work
+# systemd-networkd match won't work at archlinux
 if [ "$SYSTEM" == "archlinux" ]; then
   sed -i "6,17d" $cloudFilePath
 fi
@@ -224,4 +226,5 @@ menuentry "reinstall" {
 }
 EOF
 update-grub && grub-reboot reinstall
+# grub2-mkconfig -o /boot/grub2/grub.cfg && grub2-reboot reinstall
 echo "reboot to continue"

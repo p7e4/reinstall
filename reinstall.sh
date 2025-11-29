@@ -2,7 +2,6 @@
 # https://github.com/p7e4/reinstall
 # https://cdn.jsdelivr.net/gh/p7e4/reinstall/reinstall.sh
 set -e
-
 while getopts "p:k:s:n:" opt; do
   case $opt in
     p)
@@ -18,7 +17,7 @@ while getopts "p:k:s:n:" opt; do
       hostname=$OPTARG
       ;;
     h | *)
-      echo "Usage: $(basename $0) [-p password] [-k ssh-key] [-n hostname] -s system"
+      echo "Usage: $(basename $0) [-p password] [-k ssh-key] [-n hostname] -s <system>"
       exit 0
       ;;
   esac
@@ -35,7 +34,6 @@ if [ "$SYSTEM" != "debian" ] && \
    [ "$SYSTEM" != "fedora" ] && \
    [ "$SYSTEM" != "rocky" ] && \
    [ "$SYSTEM" != "almalinux" ] && \
-   [ "$SYSTEM" != "centos" ] && \
    [ "$SYSTEM" != "archlinux" ]; then
   echo "Error: -s parameter must be one of debian, ubuntu, fedora, rocky, almalinux, centos, archlinux"
   exit 1
@@ -85,9 +83,6 @@ apt:
   elif [ "$SYSTEM" == "almalinux" ]; then
     imgUrl="https://mirrors.nju.edu.cn/almalinux/10/cloud/x86_64/images/AlmaLinux-9-GenericCloud-latest.x86_64.qcow2"
     shaSum="https://mirrors.nju.edu.cn/almalinux/10/cloud/x86_64/images/CHECKSUM"
-  elif [ "$SYSTEM" == "centos" ]; then
-    imgUrl="https://mirrors.nju.edu.cn/centos-cloud/centos/10-stream/x86_64/images/CentOS-Stream-GenericCloud-10-latest.x86_64.qcow2"
-    shaSum="https://mirrors.nju.edu.cn/centos-cloud/centos/10-stream/x86_64/images/CentOS-Stream-GenericCloud-10-latest.x86_64.qcow2.SHA256SUM"
   elif [ "$SYSTEM" == "archlinux" ]; then
     imgUrl="https://mirrors.nju.edu.cn/archlinux/images/latest/Arch-Linux-x86_64-cloudimg.qcow2"
     shaSum="https://mirrors.nju.edu.cn/archlinux/images/latest/Arch-Linux-x86_64-cloudimg.qcow2.SHA256"
@@ -108,9 +103,6 @@ else
   elif [ "$SYSTEM" == "almalinux" ]; then
     imgUrl="https://repo.almalinux.org/almalinux/10/cloud/x86_64/images/AlmaLinux-10-GenericCloud-latest.x86_64.qcow2"
     shaSum="https://repo.almalinux.org/almalinux/10/cloud/x86_64/images/CHECKSUM"
-  elif [ "$SYSTEM" == "centos" ]; then
-    imgUrl="https://cloud.centos.org/centos/10-stream/x86_64/images/CentOS-Stream-GenericCloud-10-latest.x86_64.qcow2"
-    shaSum="https://cloud.centos.org/centos/10-stream/x86_64/images/CentOS-Stream-GenericCloud-10-latest.x86_64.qcow2.SHA256SUM"
   elif [ "$SYSTEM" == "archlinux" ]; then
     imgUrl="https://geo.mirror.pkgbuild.com/images/latest/Arch-Linux-x86_64-cloudimg.qcow2"
     shaSum="https://geo.mirror.pkgbuild.com/images/latest/Arch-Linux-x86_64-cloudimg.qcow2.SHA256"

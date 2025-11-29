@@ -11,7 +11,6 @@ A simple script to reinstall your VPS with cloud image.
 | Fedora        | 43      | Fedora-Cloud-Base-Generic-43-1.6.x86_64.qcow2     | 557M |
 | Rocky         | 10      | Rocky-10-GenericCloud-Base.latest.x86_64.qcow2    | 549M |
 | AlmaLinux     | 10      | AlmaLinux-10-GenericCloud-latest.x86_64.qcow2     | 563M |
-| CentOS Stream | 10      | CentOS-Stream-GenericCloud-10-latest.x86_64.qcow2 | 1.5G |
 | Archlinux     | rolling | Arch-Linux-x86_64-cloudimg.qcow2                  | 557M |
 
 The current system must be **Debian 10/Ubuntu 18 or higher**.

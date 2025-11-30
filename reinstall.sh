@@ -1,7 +1,10 @@
 #!/bin/bash
 # https://github.com/p7e4/reinstall
 # https://cdn.jsdelivr.net/gh/p7e4/reinstall/reinstall.sh
+
 set -e
+info() { echo -e "\e[32m[+] $1\e[0m"; }
+error() { echo -e "\e[31m[!] $1\e[0m"; }
 while getopts "p:k:s:n:" opt; do
   case $opt in
     p)
@@ -17,14 +20,14 @@ while getopts "p:k:s:n:" opt; do
       hostname=$OPTARG
       ;;
     h | *)
-      echo "Usage: $(basename $0) [-p password] [-k ssh-key] [-n hostname] -s <system>"
+      info "Usage: $(basename $0) [-p password] [-k ssh-key] [-n hostname] -s debian/ubuntu/fedora/rocky/almalinux/archlinux"
       exit 0
       ;;
   esac
 done
 
 if [ -z "$PASSWORD" ] && [ -z "$SSHKEY" ]; then
-  echo "Error: either -k or -p parameter need to be provided"
+  error "either -k or -p parameter need to be provided"
   exit 1
 fi
 
@@ -35,7 +38,7 @@ if [ "$SYSTEM" != "debian" ] && \
    [ "$SYSTEM" != "rocky" ] && \
    [ "$SYSTEM" != "almalinux" ] && \
    [ "$SYSTEM" != "archlinux" ]; then
-  echo "Error: -s parameter must be one of debian, ubuntu, fedora, rocky, almalinux, centos, archlinux"
+  error "target system must be one of debian, ubuntu, fedora, rocky, almalinux, archlinux"
   exit 1
 fi
 
@@ -43,15 +46,28 @@ if [ -z "$hostname" ]; then
   hostname="vm-$SYSTEM"
 fi
 
+info "set target system: $SYSTEM"
+
 if [ -f /etc/default/kexec ]; then
   sed -i 's/LOAD_KEXEC=true/LOAD_KEXEC=false/' /etc/default/kexec
 fi
 
-apt update && apt install -y qemu-utils jq
-# dnf makecache && dnf install -y qemu-img jq
+info "install dependencies"
+if command -v apt &> /dev/null; then
+  apt update && apt install -y qemu-utils jq
+elif command -v dnf &> /dev/null; then
+  dnf makecache && dnf install -y qemu-img jq
+else
+  error "unsuport os type"
+  exit 1
+fi
+
+# if [[ $SYSTEM == "archlinux" || $SYSTEM == "fedora" ]]; then
+#   modprobe btrfs
+# fi
 
 country=$(curl -s "https://ipinfo.io/" | jq -r ".country")
-echo "server location: $country"
+info "server location code: $country"
 
 if [ "$country" == "CN" ]; then
   if [ "$SYSTEM" == "debian" ]; then
@@ -81,7 +97,7 @@ apt:
     imgUrl="https://mirrors.nju.edu.cn/rocky/10/images/x86_64/Rocky-10-GenericCloud-Base.latest.x86_64.qcow2"
     shaSum="https://mirrors.nju.edu.cn/rocky/10/images/x86_64/CHECKSUM"
   elif [ "$SYSTEM" == "almalinux" ]; then
-    imgUrl="https://mirrors.nju.edu.cn/almalinux/10/cloud/x86_64/images/AlmaLinux-9-GenericCloud-latest.x86_64.qcow2"
+    imgUrl="https://mirrors.nju.edu.cn/almalinux/10/cloud/x86_64/images/AlmaLinux-10-GenericCloud-latest.x86_64.qcow2"
     shaSum="https://mirrors.nju.edu.cn/almalinux/10/cloud/x86_64/images/CHECKSUM"
   elif [ "$SYSTEM" == "archlinux" ]; then
     imgUrl="https://mirrors.nju.edu.cn/archlinux/images/latest/Arch-Linux-x86_64-cloudimg.qcow2"
@@ -114,24 +130,28 @@ fi
 rm -rf /reinstall
 mkdir /reinstall && cd /reinstall
 
+info "start download vmlinuz"
 curl -o vmlinuz https://$alpineHost/alpine/latest-stable/releases/x86_64/netboot/vmlinuz-virt
+info "start download initrd"
 curl -o initrd https://$alpineHost/alpine/latest-stable/releases/x86_64/netboot/initramfs-virt
+info "start download image form $imgUrl"
 curl -OLA reinstall $imgUrl
 imageFile=$(basename $imgUrl)
 
 if [ "$shaSum" ]; then
+  info "verify image hash"
   curl -A reinstall -o SHA256SUMS $shaSum
   sha256sum -c SHA256SUMS --ignore-missing 2>&1 | grep OK || (echo "$imageFile sha256 verify faile!" && exit 1)
 fi
 
+info "pack the cloud-init configuration file into image"
 modprobe nbd
-modprobe btrfs
 qemu-nbd -c /dev/nbd0 $imageFile
 sleep 1
 mount $(fdisk -l | grep -E "/dev/nbd0p.*Linux (root|filesystem)" | awk 'END {print $1}') /mnt
 
 if [ "$SSHKEY" ]; then
-  echo "using ssh key auth, key: $SSHKEY"
+  info "using ssh public key authentication"
   sshAuth="
 users:
   - name: root
@@ -140,7 +160,7 @@ users:
 fi
 
 if [ "$PASSWORD" ]; then
-  echo "using password auth, password: $PASSWORD"
+  info "using password authentication"
   passAuth="
 ssh_pwauth: true
 chpasswd:
@@ -182,7 +202,7 @@ EOF
 
 # systemd-networkd match won't work at archlinux
 if [ "$SYSTEM" == "archlinux" ]; then
-  sed -i "6,17d" $cloudFilePath
+  sed -i "5,16d" $cloudFilePath
 fi
 
 umount /mnt && qemu-nbd -d /dev/nbd0
@@ -217,6 +237,15 @@ menuentry "reinstall" {
   initrd /reinstall/initrd
 }
 EOF
-update-grub && grub-reboot reinstall
-# grub2-mkconfig -o /boot/grub2/grub.cfg && grub2-reboot reinstall
-echo "reboot to continue"
+
+info "update grub"
+if command -v update-grub &> /dev/null; then
+  update-grub && grub-reboot reinstall
+elif command -v grub2-mkconfig  &> /dev/null; then
+  grub2-mkconfig -o /boot/grub2/grub.cfg && grub2-reboot reinstall
+else
+  error "unable to update grub configuration"
+  exit 1
+fi
+
+info "reboot to continue"

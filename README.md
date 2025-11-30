@@ -8,44 +8,36 @@ A simple script to reinstall your VPS with cloud image.
 |---------------|---------|---------------------------------------------------|------|
 | Debian        | 13      | debian-13-genericcloud-amd64.qcow2                | 326M |
 | Ubuntu        | 24.04   | noble-server-cloudimg-amd64.img                   | 598M |
-| Fedora        | 43      | Fedora-Cloud-Base-Generic-43-1.6.x86_64.qcow2     | 557M |
 | Rocky         | 10      | Rocky-10-GenericCloud-Base.latest.x86_64.qcow2    | 549M |
 | AlmaLinux     | 10      | AlmaLinux-10-GenericCloud-latest.x86_64.qcow2     | 563M |
+| Fedora        | 43.1.6  | Fedora-Cloud-Base-Generic-43-1.6.x86_64.qcow2     | 557M |
 | Archlinux     | rolling | Arch-Linux-x86_64-cloudimg.qcow2                  | 557M |
 
-The current system must be **Debian 10/Ubuntu 18 or higher**.
+The host system must be **Debian 10/Ubuntu 18** or Rocky Linux 10/AlmaLinux 10 (target system not fedora/archlinux), older version might work but not been fully tested.
 
-## Usage
+> The host server minimum memory should be larger than the image size, recommend at least 1GB.
 
-1. **Download the `reinstall.sh` script:**
+## Quick Start
 
-    ```sh
-    curl -O https://cdn.jsdelivr.net/gh/p7e4/reinstall/reinstall.sh
-    ```
-    or
-    ``` sh
-    curl -O https://raw.githubusercontent.com/p7e4/reinstall/refs/heads/main/reinstall.sh
-    ```
+```
+# Download the reinstall.sh
+# or https://raw.githubusercontent.com/p7e4/reinstall/refs/heads/main/reinstall.sh
+curl -O https://cdn.jsdelivr.net/gh/p7e4/reinstall/reinstall.sh
 
-2. **Run the script:**
+# reinstall system to debian using password
+bash reinstall.sh -p <your_password> -s debian
 
-    Use SSH public key for authentication:
+```
 
-    ```sh
-    bash reinstall.sh -k "ssh-rsa your_key" -s debian
-    ```
+## Parameters
 
-    Or use password for authentication:
+| Optional | Default      | Description               |
+|----------|--------------|---------------------------|
+| -k       | none         | ssh key authentication    |
+| -p       | none         | password                  |
+| -n       | vm-$(system) | hostname                  |
+| -s       | none         | target system, one of debian/ubuntu/fedora/rocky/almalinux/archlinux |
 
-    ```sh
-    bash reinstall.sh -p your_password -s debian
-    ```
-
-    Optionally, you can set up the hostname:
-
-    ```sh
-    bash reinstall.sh -p your_password -s debian -n your_hostname
-    ```
 
 ## Related Repositories
 

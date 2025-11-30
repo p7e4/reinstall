@@ -42,6 +42,11 @@ if [ "$SYSTEM" != "debian" ] && \
   exit 1
 fi
 
+if [ "$(id -u)" -ne 0 ]; then
+    error "need run as root or use sudo"
+    exit 1
+fi
+
 if [ -z "$hostname" ]; then
   hostname="vm-$SYSTEM"
 fi
@@ -62,9 +67,9 @@ else
   exit 1
 fi
 
-# if [[ $SYSTEM == "archlinux" || $SYSTEM == "fedora" ]]; then
-#   modprobe btrfs
-# fi
+if [[ $SYSTEM == "archlinux" || $SYSTEM == "fedora" ]]; then
+  modprobe btrfs
+fi
 
 country=$(curl -s "https://ipinfo.io/" | jq -r ".country")
 info "server location code: $country"

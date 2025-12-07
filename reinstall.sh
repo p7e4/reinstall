@@ -4,7 +4,7 @@
 
 set -e
 info() { echo -e "\e[32m[+] $1\e[0m"; }
-error() { echo -e "\e[31m[!] $1\e[0m"; }
+error() { echo -e "\e[31m[!] $1\e[0m"; exit 1; }
 while getopts "p:k:s:n:" opt; do
   case $opt in
     p)
@@ -28,7 +28,10 @@ done
 
 if [ -z "$PASSWORD" ] && [ -z "$SSHKEY" ]; then
   error "either -k or -p parameter need to be provided"
-  exit 1
+fi
+
+if [ "$SSHKEY" ]; then
+  [[ ! $SSHKEY =~ ^(ssh-rsa|ssh-dss|ssh-ed25519|ecdsa-sha2-) ]] && error "ssh-key must begin with ssh-rsa/ssh-dss/ssh-ed25519/ecdsa-sha2"
 fi
 
 SYSTEM=$(echo "$SYSTEM" | tr '[:upper:]' '[:lower:]')
@@ -38,20 +41,28 @@ if [ "$SYSTEM" != "debian" ] && \
    [ "$SYSTEM" != "rocky" ] && \
    [ "$SYSTEM" != "almalinux" ] && \
    [ "$SYSTEM" != "archlinux" ]; then
-  error "target system must be one of debian, ubuntu, fedora, rocky, almalinux, archlinux"
-  exit 1
+  error "target os must be one of debian, ubuntu, fedora, rocky, almalinux, archlinux"
+fi
+
+DISTRO_ID=$(awk -F= '/^ID=/{gsub(/"/, "", $2); print $2; exit}' /etc/os-release)
+if [[ ! $DISTRO_ID =~ ^(ubuntu|debian|rocky|almalinux)$ ]]; then
+    error "current os must be one of debian, ubuntu, rocky, almalinux"
+fi
+
+
+if [[ $SYSTEM == "archlinux" || $SYSTEM == "fedora" ]]; then
+  modprobe btrfs
 fi
 
 if [ "$(id -u)" -ne 0 ]; then
     error "need run as root or use sudo"
-    exit 1
 fi
 
 if [ -z "$hostname" ]; then
   hostname="vm-$SYSTEM"
 fi
 
-info "set target system: $SYSTEM"
+info "set target os: $SYSTEM"
 
 if [ -f /etc/default/kexec ]; then
   sed -i 's/LOAD_KEXEC=true/LOAD_KEXEC=false/' /etc/default/kexec
@@ -64,11 +75,6 @@ elif command -v dnf &> /dev/null; then
   dnf makecache && dnf install -y qemu-img jq
 else
   error "unsuport os type"
-  exit 1
-fi
-
-if [[ $SYSTEM == "archlinux" || $SYSTEM == "fedora" ]]; then
-  modprobe btrfs
 fi
 
 country=$(curl -s "https://ipinfo.io/" | jq -r ".country")
@@ -77,6 +83,7 @@ info "server location code: $country"
 if [ "$country" == "CN" ]; then
   if [ "$SYSTEM" == "debian" ]; then
     imgUrl="https://mirrors.nju.edu.cn/debian-cdimage/cloud/trixie/latest/debian-13-genericcloud-amd64.qcow2"
+    shaSum="https://mirrors.nju.edu.cn/debian-cdimage/cloud/trixie/latest/SHA512SUMS"
     aptMirror="
 apt:
   primary:
@@ -87,7 +94,7 @@ apt:
       uri: https://mirrors.ustc.edu.cn/debian-security/"
   elif [ "$SYSTEM" == "ubuntu" ]; then
     imgUrl="https://mirrors.nju.edu.cn/ubuntu-cloud-images/noble/current/noble-server-cloudimg-amd64.img"
-    shaSum="https://cloud-images.ubuntu.com/noble/current/SHA256SUMS"
+    shaSum="https://mirrors.nju.edu.cn/ubuntu-cloud-images/noble/current/SHA256SUMS"
     aptMirror="
 apt:
   sources_list: |
@@ -98,6 +105,7 @@ apt:
     Signed-By: /usr/share/keyrings/ubuntu-archive-keyring.gpg"
   elif [ "$SYSTEM" == "fedora" ]; then
     imgUrl="https://mirrors.nju.edu.cn/fedora/releases/43/Cloud/x86_64/images/Fedora-Cloud-Base-Generic-43-1.6.x86_64.qcow2"
+    shaSum="https://mirrors.nju.edu.cn/fedora/releases/43/Cloud/x86_64/images/Fedora-Cloud-43-1.6-x86_64-CHECKSUM"
   elif [ "$SYSTEM" == "rocky" ]; then
     imgUrl="https://mirrors.nju.edu.cn/rocky/10/images/x86_64/Rocky-10-GenericCloud-Base.latest.x86_64.qcow2"
     shaSum="https://mirrors.nju.edu.cn/rocky/10/images/x86_64/CHECKSUM"
@@ -113,11 +121,13 @@ apt:
 else
   if [ "$SYSTEM" == "debian" ]; then
     imgUrl="https://cdimage.debian.org/images/cloud/trixie/latest/debian-13-genericcloud-amd64.qcow2"
+    shaSum="https://cdimage.debian.org/images/cloud/trixie/latest/SHA512SUMS"
   elif [ "$SYSTEM" == "ubuntu" ]; then
     imgUrl="https://cloud-images.ubuntu.com/noble/current/noble-server-cloudimg-amd64.img"
     shaSum="https://cloud-images.ubuntu.com/noble/current/SHA256SUMS"
   elif [ "$SYSTEM" == "fedora" ]; then
     imgUrl="https://download.fedoraproject.org/pub/fedora/linux/releases/43/Cloud/x86_64/images/Fedora-Cloud-Base-Generic-43-1.6.x86_64.qcow2"
+    shaSum="https://download.fedoraproject.org/pub/fedora/linux/releases/43/Cloud/x86_64/images/Fedora-Cloud-43-1.6-x86_64-CHECKSUM"
   elif [ "$SYSTEM" == "rocky" ]; then
     imgUrl="https://dl.rockylinux.org/pub/rocky/10/images/x86_64/Rocky-10-GenericCloud-Base.latest.x86_64.qcow2"
     shaSum="https://dl.rockylinux.org/pub/rocky/10/images/x86_64/CHECKSUM"
@@ -145,8 +155,12 @@ imageFile=$(basename $imgUrl)
 
 if [ "$shaSum" ]; then
   info "verify image hash"
-  curl -A reinstall -o SHA256SUMS $shaSum
-  sha256sum -c SHA256SUMS --ignore-missing 2>&1 | grep OK || (echo "$imageFile sha256 verify faile!" && exit 1)
+  curl -A reinstall -o SHASUMS $shaSum
+  if [ "$SYSTEM" == "debian" ]; then
+    sha512sum -c SHASUMS --ignore-missing || error "$imageFile hash verify faile!"
+  else
+    sha256sum -c SHASUMS --ignore-missing || error "$imageFile hash verify faile!"
+  fi
 fi
 
 info "pack the cloud-init configuration file into image"
@@ -250,7 +264,6 @@ elif command -v grub2-mkconfig  &> /dev/null; then
   grub2-mkconfig -o /boot/grub2/grub.cfg && grub2-reboot reinstall
 else
   error "unable to update grub configuration"
-  exit 1
 fi
 
 info "reboot to continue"

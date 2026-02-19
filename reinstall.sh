@@ -55,7 +55,7 @@ if [[ $SYSTEM == "archlinux" || $SYSTEM == "fedora" ]]; then
 fi
 
 if [ "$(id -u)" -ne 0 ]; then
-    error "need run as root or use sudo"
+    error "need run as root"
 fi
 
 if [ -z "$hostname" ]; then
@@ -70,11 +70,11 @@ fi
 
 info "install dependencies"
 if command -v apt &> /dev/null; then
-  apt update && apt install -y qemu-utils jq
+  apt update && apt install -y qemu-utils jq whois
 elif command -v dnf &> /dev/null; then
-  dnf makecache && dnf install -y qemu-img jq
+  dnf makecache && dnf install -y qemu-img jq expect
 else
-  error "unsuport os type"
+  error "no package manager detected"
 fi
 
 country=$(curl -s "https://ipinfo.io/" | jq -r ".country")
@@ -180,16 +180,17 @@ fi
 
 if [ "$PASSWORD" ]; then
   info "using password authentication"
+  PASSWORD=$(mkpasswd "$PASSWORD")
   passAuth="
 ssh_pwauth: true
 chpasswd:
   expire: false
   users:
     - name: root
-      password: $PASSWORD
-      type: text
-runcmd:
-  - sed -i 's/^#PermitRootLogin.*/PermitRootLogin yes/g' /etc/ssh/sshd_config
+      password: $PASSWORD"
+  runcmd="
+  - sed -i '/^#PermitRootLogin/c\PermitRootLogin yes' /etc/ssh/sshd_config
+  - rm /etc/ssh/sshd_config.d/*
   - lsb_release -c | grep noble || systemctl restart sshd"
 fi
 
@@ -204,6 +205,8 @@ cat > $cloudFilePath << EOF
 datasource_list: [None]
 hostname: $hostname
 timezone: Asia/Shanghai
+runcmd:
+  - sed -i '/^#ClientAliveInterval/c\ClientAliveInterval 30' /etc/ssh/sshd_config$runcmd
 network:
   version: 2
   ethernets:

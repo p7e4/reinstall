@@ -1,6 +1,6 @@
 # Reinstall
 
-A simple script to reinstall your VPS with cloud image.
+A simple script reinstall your VPS to major Linux system using cloud image.
 
 ## Target System
 
@@ -24,10 +24,16 @@ The host system must be **Debian 10/Ubuntu 18** or Rocky Linux 10/AlmaLinux 10 (
 # or https://raw.githubusercontent.com/p7e4/reinstall/refs/heads/main/reinstall.sh
 curl -O https://cdn.jsdelivr.net/gh/p7e4/reinstall/reinstall.sh
 
-# reinstall system to debian using password
+# reinstall system to debian and setup password
 bash reinstall.sh -p <your_password> -s debian
 
+# reinstall system to debian and setup ssh key
+bash reinstall.sh -k <your_ssh-key> -s debian
+
 ```
+
+after reboot, then ssh with root user
+
 
 ## Parameters
 

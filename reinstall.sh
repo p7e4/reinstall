@@ -82,8 +82,8 @@ info "server location code: $country"
 
 if [ "$country" == "CN" ]; then
   if [ "$SYSTEM" == "debian" ]; then
-    imgUrl="https://mirrors.nju.edu.cn/debian-cdimage/cloud/trixie/latest/debian-13-genericcloud-amd64.qcow2"
-    shaSum="https://mirrors.nju.edu.cn/debian-cdimage/cloud/trixie/latest/SHA512SUMS"
+    imgUrl="https://mirrors.ustc.edu.cn/debian-cdimage/cloud/trixie/latest/debian-13-genericcloud-amd64.qcow2"
+    shaSum="https://mirrors.ustc.edu.cn/debian-cdimage/cloud/trixie/latest/SHA512SUMS"
     aptMirror="
 apt:
   primary:
@@ -93,8 +93,8 @@ apt:
     - arches: [default]
       uri: https://mirrors.ustc.edu.cn/debian-security/"
   elif [ "$SYSTEM" == "ubuntu" ]; then
-    imgUrl="https://mirrors.nju.edu.cn/ubuntu-cloud-images/noble/current/noble-server-cloudimg-amd64.img"
-    shaSum="https://mirrors.nju.edu.cn/ubuntu-cloud-images/noble/current/SHA256SUMS"
+    imgUrl="https://mirrors.ustc.edu.cn/ubuntu-cloud-images/noble/current/noble-server-cloudimg-amd64.img"
+    shaSum="https://mirrors.ustc.edu.cn/ubuntu-cloud-images/noble/current/SHA256SUMS"
     aptMirror="
 apt:
   sources_list: |
@@ -104,19 +104,19 @@ apt:
     Components: main universe restricted multiverse
     Signed-By: /usr/share/keyrings/ubuntu-archive-keyring.gpg"
   elif [ "$SYSTEM" == "fedora" ]; then
-    imgUrl="https://mirrors.nju.edu.cn/fedora/releases/43/Cloud/x86_64/images/Fedora-Cloud-Base-Generic-43-1.6.x86_64.qcow2"
-    shaSum="https://mirrors.nju.edu.cn/fedora/releases/43/Cloud/x86_64/images/Fedora-Cloud-43-1.6-x86_64-CHECKSUM"
+    imgUrl="https://mirrors.hust.edu.cn/fedora/releases/43/Cloud/x86_64/images/Fedora-Cloud-Base-Generic-43-1.6.x86_64.qcow2"
+    shaSum="https://mirrors.hust.edu.cn/fedora/releases/43/Cloud/x86_64/images/Fedora-Cloud-43-1.6-x86_64-CHECKSUM"
   elif [ "$SYSTEM" == "rocky" ]; then
-    imgUrl="https://mirrors.nju.edu.cn/rocky/10/images/x86_64/Rocky-10-GenericCloud-Base.latest.x86_64.qcow2"
-    shaSum="https://mirrors.nju.edu.cn/rocky/10/images/x86_64/CHECKSUM"
+    imgUrl="https://mirrors.hust.edu.cn/rocky/10/images/x86_64/Rocky-10-GenericCloud-Base.latest.x86_64.qcow2"
+    shaSum="https://mirrors.hust.edu.cn/rocky/10/images/x86_64/CHECKSUM"
   elif [ "$SYSTEM" == "almalinux" ]; then
-    imgUrl="https://mirrors.nju.edu.cn/almalinux/10/cloud/x86_64/images/AlmaLinux-10-GenericCloud-latest.x86_64.qcow2"
-    shaSum="https://mirrors.nju.edu.cn/almalinux/10/cloud/x86_64/images/CHECKSUM"
+    imgUrl="https://mirrors.ustc.edu.cn/almalinux/10/cloud/x86_64/images/AlmaLinux-10-GenericCloud-latest.x86_64.qcow2"
+    shaSum="https://mirrors.ustc.edu.cn/almalinux/10/cloud/x86_64/images/CHECKSUM"
   elif [ "$SYSTEM" == "archlinux" ]; then
-    imgUrl="https://mirrors.nju.edu.cn/archlinux/images/latest/Arch-Linux-x86_64-cloudimg.qcow2"
-    shaSum="https://mirrors.nju.edu.cn/archlinux/images/latest/Arch-Linux-x86_64-cloudimg.qcow2.SHA256"
+    imgUrl="https://mirrors.hust.edu.cn/archlinux/images/latest/Arch-Linux-x86_64-cloudimg.qcow2"
+    shaSum="https://mirrors.hust.edu.cn/archlinux/images/latest/Arch-Linux-x86_64-cloudimg.qcow2.SHA256"
   fi
-  alpineHost="mirrors.nju.edu.cn"
+  alpineHost="mirrors.hust.edu.cn"
   dns="223.5.5.5, 223.6.6.6"
 else
   if [ "$SYSTEM" == "debian" ]; then

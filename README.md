@@ -6,12 +6,12 @@ A simple script reinstall your VPS to major Linux system using cloud image.
 
 | System        | Version | Image                                             | Size |
 |---------------|---------|---------------------------------------------------|------|
-| Debian        | 13      | debian-13-genericcloud-amd64.qcow2                | 322M |
-| Ubuntu        | 24.04   | noble-server-cloudimg-amd64.img                   | 599M |
+| Debian        | 13      | debian-13-genericcloud-amd64.qcow2                | 323M |
+| Ubuntu        | 24.04   | noble-server-cloudimg-amd64.img                   | 600M |
 | Fedora        | 43.1.6  | Fedora-Cloud-Base-Generic-43-1.6.x86_64.qcow2     | 556M |
 | Rocky         | 10      | Rocky-10-GenericCloud-Base.latest.x86_64.qcow2    | 548M |
 | AlmaLinux     | 10      | AlmaLinux-10-GenericCloud-latest.x86_64.qcow2     | 479M |
-| Archlinux     | rolling | Arch-Linux-x86_64-cloudimg.qcow2                  | 515M |
+| Archlinux     | rolling | Arch-Linux-x86_64-cloudimg.qcow2                  | 517M |
 
 The host system must be **Debian 10/Ubuntu 18** or Rocky Linux 10/AlmaLinux 10 (target system not fedora/archlinux), older version might work but not been fully tested.
 

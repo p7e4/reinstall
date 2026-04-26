@@ -93,14 +93,14 @@ apt:
     - arches: [default]
       uri: https://mirrors.ustc.edu.cn/debian-security/"
   elif [ "$SYSTEM" == "ubuntu" ]; then
-    imgUrl="https://mirrors.nju.edu.cn/ubuntu-cloud-images/noble/current/noble-server-cloudimg-amd64.img"
-    shaSum="https://mirrors.nju.edu.cn/ubuntu-cloud-images/noble/current/SHA256SUMS"
+    imgUrl="https://mirrors.nju.edu.cn/ubuntu-cloud-images/resolute/current/resolute-server-cloudimg-amd64.img"
+    shaSum="https://mirrors.nju.edu.cn/ubuntu-cloud-images/resolute/current/SHA256SUMS"
     aptMirror="
 apt:
   sources_list: |
     Types: deb
     URIs: https://mirrors.ustc.edu.cn/ubuntu/
-    Suites: noble noble-updates noble-security noble-backports
+    Suites: resolute resolute-updates resolute-backports resolute-security
     Components: main universe restricted multiverse
     Signed-By: /usr/share/keyrings/ubuntu-archive-keyring.gpg"
   elif [ "$SYSTEM" == "fedora" ]; then
@@ -123,8 +123,8 @@ else
     imgUrl="https://cdimage.debian.org/images/cloud/trixie/latest/debian-13-genericcloud-amd64.qcow2"
     shaSum="https://cdimage.debian.org/images/cloud/trixie/latest/SHA512SUMS"
   elif [ "$SYSTEM" == "ubuntu" ]; then
-    imgUrl="https://cloud-images.ubuntu.com/noble/current/noble-server-cloudimg-amd64.img"
-    shaSum="https://cloud-images.ubuntu.com/noble/current/SHA256SUMS"
+    imgUrl="https://cloud-images.ubuntu.com/resolute/current/resolute-server-cloudimg-amd64.img"
+    shaSum="https://cloud-images.ubuntu.com/resolute/current/SHA256SUMS"
   elif [ "$SYSTEM" == "fedora" ]; then
     imgUrl="https://download.fedoraproject.org/pub/fedora/linux/releases/43/Cloud/x86_64/images/Fedora-Cloud-Base-Generic-43-1.6.x86_64.qcow2"
     shaSum="https://download.fedoraproject.org/pub/fedora/linux/releases/43/Cloud/x86_64/images/Fedora-Cloud-43-1.6-x86_64-CHECKSUM"

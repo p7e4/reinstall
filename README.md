@@ -21,18 +21,17 @@ The host system must be **Debian 10/Ubuntu 18** or Rocky Linux 10/AlmaLinux 10 (
 
 ```
 # Download the reinstall.sh
-# or https://raw.githubusercontent.com/p7e4/reinstall/refs/heads/main/reinstall.sh
-curl -O https://cdn.jsdelivr.net/gh/p7e4/reinstall/reinstall.sh
+# or https://cdn.jsdelivr.net/gh/p7e4/reinstall/reinstall.sh
+curl -O https://raw.githubusercontent.com/p7e4/reinstall/refs/heads/main/reinstall.sh
 
 # reinstall system to debian and setup password
 bash reinstall.sh -p <your_password> -s debian
 
 # reinstall system to debian and setup ssh key
 bash reinstall.sh -k <your_ssh-key> -s debian
-
 ```
 
-after reboot, then ssh with root user
+after reboot, ssh to your server with root user
 
 
 ## Parameters

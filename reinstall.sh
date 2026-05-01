@@ -116,7 +116,7 @@ apt:
     imgUrl="https://mirrors.nju.edu.cn/archlinux/images/latest/Arch-Linux-x86_64-cloudimg.qcow2"
     shaSum="https://mirrors.nju.edu.cn/archlinux/images/latest/Arch-Linux-x86_64-cloudimg.qcow2.SHA256"
   fi
-  alpineHost="mirrors.hust.edu.cn"
+  alpineHost="mirrors.nju.edu.cn"
   dns="223.5.5.5, 223.6.6.6"
 else
   if [ "$SYSTEM" == "debian" ]; then
@@ -195,9 +195,9 @@ chpasswd:
 fi
 
 if [ "$SYSTEM" == "fedora" ]; then
-  cloudFilePath=/mnt/root/etc/cloud/cloud.cfg.d/custom.cfg
+  cloudFilePath="/mnt/root/etc/cloud/cloud.cfg.d/custom.cfg"
 else
-  cloudFilePath=/mnt/etc/cloud/cloud.cfg.d/custom.cfg
+  cloudFilePath="/mnt/etc/cloud/cloud.cfg.d/custom.cfg"
 fi
 
 cat > $cloudFilePath << EOF
@@ -254,7 +254,7 @@ cat > /etc/grub.d/40_custom << EOF
 exec tail -n +3 \$0
 set timeout=1
 menuentry "reinstall" {
-  search -n -f --set=root /reinstall/vmlinuz
+  search --no-floppy --set=root -f /reinstall/vmlinuz
   linux /reinstall/vmlinuz alpine_repo=https://$alpineHost/alpine/latest-stable/main/ modloop=https://$alpineHost/alpine/latest-stable/releases/x86_64/netboot/modloop-virt
   initrd /reinstall/initrd
 }

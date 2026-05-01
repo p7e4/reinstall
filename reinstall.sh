@@ -45,7 +45,7 @@ if [ "$SYSTEM" != "debian" ] && \
 fi
 
 DISTRO_ID=$(awk -F= '/^ID=/{gsub(/"/, "", $2); print $2; exit}' /etc/os-release)
-if [[ ! $DISTRO_ID =~ ^(ubuntu|debian|rocky|almalinux)$ ]]; then
+if [[ ! $DISTRO_ID =~ ^(debian|ubuntu|rocky|almalinux)$ ]]; then
     error "current os must be one of debian, ubuntu, rocky, almalinux"
 fi
 
@@ -104,8 +104,8 @@ apt:
     Components: main universe restricted multiverse
     Signed-By: /usr/share/keyrings/ubuntu-archive-keyring.gpg"
   elif [ "$SYSTEM" == "fedora" ]; then
-    imgUrl="https://mirrors.nju.edu.cn/fedora/releases/43/Cloud/x86_64/images/Fedora-Cloud-Base-Generic-43-1.6.x86_64.qcow2"
-    shaSum="https://mirrors.nju.edu.cn/fedora/releases/43/Cloud/x86_64/images/Fedora-Cloud-43-1.6-x86_64-CHECKSUM"
+    imgUrl="https://mirrors.nju.edu.cn/fedora/releases/44/Cloud/x86_64/images/Fedora-Cloud-Base-Generic-44-1.7.x86_64.qcow2"
+    shaSum="https://mirrors.nju.edu.cn/fedora/releases/44/Cloud/x86_64/images/Fedora-Cloud-44-1.7-x86_64-CHECKSUM"
   elif [ "$SYSTEM" == "rocky" ]; then
     imgUrl="https://mirrors.nju.edu.cn/rocky/10/images/x86_64/Rocky-10-GenericCloud-Base.latest.x86_64.qcow2"
     shaSum="https://mirrors.nju.edu.cn/rocky/10/images/x86_64/CHECKSUM"
@@ -126,8 +126,8 @@ else
     imgUrl="https://cloud-images.ubuntu.com/resolute/current/resolute-server-cloudimg-amd64.img"
     shaSum="https://cloud-images.ubuntu.com/resolute/current/SHA256SUMS"
   elif [ "$SYSTEM" == "fedora" ]; then
-    imgUrl="https://download.fedoraproject.org/pub/fedora/linux/releases/43/Cloud/x86_64/images/Fedora-Cloud-Base-Generic-43-1.6.x86_64.qcow2"
-    shaSum="https://download.fedoraproject.org/pub/fedora/linux/releases/43/Cloud/x86_64/images/Fedora-Cloud-43-1.6-x86_64-CHECKSUM"
+    imgUrl="https://download.fedoraproject.org/pub/fedora/linux/releases/44/Cloud/x86_64/images/Fedora-Cloud-Base-Generic-44-1.7.x86_64.qcow2"
+    shaSum="https://download.fedoraproject.org/pub/fedora/linux/releases/44/Cloud/x86_64/images/Fedora-Cloud-44-1.7-x86_64-CHECKSUM"
   elif [ "$SYSTEM" == "rocky" ]; then
     imgUrl="https://dl.rockylinux.org/pub/rocky/10/images/x86_64/Rocky-10-GenericCloud-Base.latest.x86_64.qcow2"
     shaSum="https://dl.rockylinux.org/pub/rocky/10/images/x86_64/CHECKSUM"

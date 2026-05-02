@@ -41,8 +41,8 @@ if [[ ! "$SYSTEM" =~ ^(debian|ubuntu|fedora|rocky|almalinux|archlinux)$ ]]; then
 fi
 
 DISTRO_ID=$(awk -F= '/^ID=/{gsub(/"/, "", $2); print $2; exit}' /etc/os-release)
-if [[ ! $DISTRO_ID =~ ^(debian|ubuntu|rocky|almalinux)$ ]]; then
-    error "current os must be one of debian, ubuntu, rocky, almalinux"
+if [[ ! $DISTRO_ID =~ ^(debian|ubuntu|fedora|rocky|almalinux)$ ]]; then
+    error "current os must be one of debian, ubuntu, fedora, rocky, almalinux"
 fi
 
 if [ "$(id -u)" -ne 0 ]; then
@@ -232,13 +232,14 @@ mkdir tmp && cd tmp
 gzip -d < ../initrd | cpio -id
 sed -i '/^exec switch_root/i\mv post.start $sysroot/etc/local.d/\nln -s /etc/init.d/local $sysroot/etc/runlevels/default/' init
 
+[ "$DISTRO_ID" == "fedora" ] && DISTRO_FEDORA="/root"
 disk=$(df / | awk 'NR==2 {print $1}')
 cat > post.start << EOF
 mount / -o remount,size=100%
 echo "https://${alpineHost}/alpine/latest-stable/community/" >> /etc/apk/repositories
 apk add --no-cache util-linux qemu-img
 mount $disk /mnt
-cp /mnt/reinstall/$imageFile ./
+cp /mnt${DISTRO_FEDORA}/reinstall/$imageFile ./
 umount /mnt
 qemu-img dd if=$imageFile of=$(echo $disk | sed -E 's/[0-9]+$//') bs=1M
 reboot
@@ -253,9 +254,9 @@ cat > /etc/grub.d/40_custom << EOF
 exec tail -n +3 \$0
 set timeout=1
 menuentry "reinstall" {
-  search --no-floppy --set=root -f /reinstall/vmlinuz
-  linux /reinstall/vmlinuz alpine_repo=https://$alpineHost/alpine/latest-stable/main/ modloop=https://$alpineHost/alpine/latest-stable/releases/x86_64/netboot/modloop-virt
-  initrd /reinstall/initrd
+  search --no-floppy --set=root -f ${DISTRO_FEDORA}/reinstall/vmlinuz
+  linux ${DISTRO_FEDORA}/reinstall/vmlinuz alpine_repo=https://$alpineHost/alpine/latest-stable/main/ modloop=https://$alpineHost/alpine/latest-stable/releases/x86_64/netboot/modloop-virt
+  initrd ${DISTRO_FEDORA}/reinstall/initrd
 }
 EOF
 

@@ -5,6 +5,7 @@
 set -e
 info() { echo -e "\e[32m[+] $1\e[0m"; }
 error() { echo -e "\e[31m[!] $1\e[0m"; exit 1; }
+
 while getopts "p:k:s:n:" opt; do
   case $opt in
     p)
@@ -35,12 +36,7 @@ if [ "$SSHKEY" ]; then
 fi
 
 SYSTEM=$(echo "$SYSTEM" | tr '[:upper:]' '[:lower:]')
-if [ "$SYSTEM" != "debian" ] && \
-   [ "$SYSTEM" != "ubuntu" ] && \
-   [ "$SYSTEM" != "fedora" ] && \
-   [ "$SYSTEM" != "rocky" ] && \
-   [ "$SYSTEM" != "almalinux" ] && \
-   [ "$SYSTEM" != "archlinux" ]; then
+if [[ ! "$SYSTEM" =~ ^(debian|ubuntu|fedora|rocky|almalinux|archlinux)$ ]]; then
   error "target os must be one of debian, ubuntu, fedora, rocky, almalinux, archlinux"
 fi
 
@@ -49,20 +45,19 @@ if [[ ! $DISTRO_ID =~ ^(debian|ubuntu|rocky|almalinux)$ ]]; then
     error "current os must be one of debian, ubuntu, rocky, almalinux"
 fi
 
-
-if [[ $SYSTEM == "archlinux" || $SYSTEM == "fedora" ]]; then
-  modprobe btrfs
-fi
-
 if [ "$(id -u)" -ne 0 ]; then
     error "need run as root"
 fi
+
+info "set target os: $SYSTEM"
 
 if [ -z "$hostname" ]; then
   hostname="vm-$SYSTEM"
 fi
 
-info "set target os: $SYSTEM"
+if [[ $SYSTEM == "archlinux" || $SYSTEM == "fedora" ]]; then
+  modprobe btrfs
+fi
 
 if [ -f /etc/default/kexec ]; then
   sed -i 's/LOAD_KEXEC=true/LOAD_KEXEC=false/' /etc/default/kexec
@@ -72,7 +67,7 @@ info "install dependencies"
 if command -v apt &> /dev/null; then
   apt update && apt install -y qemu-utils jq whois
 elif command -v dnf &> /dev/null; then
-  dnf makecache && dnf install -y qemu-img jq expect
+  dnf makecache && dnf install -y qemu-img jq mkpasswd
 else
   error "no package manager detected"
 fi
@@ -161,13 +156,18 @@ if [ "$shaSum" ]; then
   else
     sha256sum -c SHASUMS --ignore-missing || error "$imageFile hash verify faile!"
   fi
+  rm -f SHASUMS
 fi
 
 info "pack the cloud-init configuration file into image"
 modprobe nbd
 qemu-nbd -c /dev/nbd0 $imageFile
 sleep 1
-mount $(fdisk -l | grep -E "/dev/nbd0p.*Linux (root|filesystem)" | awk 'END {print $1}') /mnt
+if [ "$DISTRO_ID" == "rocky" ] && [ "$SYSTEM" == "rocky" ]; then
+  mount $(fdisk -l | grep -E "/dev/nbd0p.*Linux (root|filesystem)" | awk 'END {print $1}') -o nouuid /mnt
+else
+  mount $(fdisk -l | grep -E "/dev/nbd0p.*Linux (root|filesystem)" | awk 'END {print $1}') /mnt
+fi
 
 if [ "$SSHKEY" ]; then
   info "using ssh public key authentication"
@@ -182,18 +182,16 @@ if [ "$PASSWORD" ]; then
   info "using password authentication"
   PASSWORD=$(mkpasswd "$PASSWORD")
   passAuth="
+disable_root: false
 ssh_pwauth: true
 chpasswd:
   expire: false
   users:
     - name: root
       password: $PASSWORD"
-  runcmd="
-  - sed -i '/^#PermitRootLogin/c\PermitRootLogin yes' /etc/ssh/sshd_config
-  - rm /etc/ssh/sshd_config.d/*
-  - lsb_release -c | grep noble || systemctl restart sshd"
+  runcmdRootLogin="
+  - sed -i '/^#PermitRootLogin/c\PermitRootLogin yes' /etc/ssh/sshd_config"
 fi
-
 if [ "$SYSTEM" == "fedora" ]; then
   cloudFilePath="/mnt/root/etc/cloud/cloud.cfg.d/custom.cfg"
 else
@@ -205,8 +203,6 @@ cat > $cloudFilePath << EOF
 datasource_list: [None]
 hostname: $hostname
 timezone: Asia/Shanghai
-runcmd:
-  - sed -i '/^#ClientAliveInterval/c\ClientAliveInterval 30' /etc/ssh/sshd_config$runcmd
 network:
   version: 2
   ethernets:
@@ -218,13 +214,16 @@ network:
       dhcp4-overrides:
         use-dns: no
       nameservers:
-        addresses: [$dns]\
+        addresses: [$dns]
+runcmd:$runcmdRootLogin
+  - sed -i '/^#ClientAliveInterval/c\ClientAliveInterval 30' /etc/ssh/sshd_config
+  - systemctl restart sshd\
 $aptMirror$sshAuth$passAuth
 EOF
 
-# systemd-networkd match won't work at archlinux
+# cloud-init network won't work at archlinux
 if [ "$SYSTEM" == "archlinux" ]; then
-  sed -i "7,18d" $cloudFilePath
+  sed -i "5,16d" $cloudFilePath
 fi
 
 umount /mnt && qemu-nbd -d /dev/nbd0
@@ -236,7 +235,7 @@ sed -i '/^exec switch_root/i\mv post.start $sysroot/etc/local.d/\nln -s /etc/ini
 disk=$(df / | awk 'NR==2 {print $1}')
 cat > post.start << EOF
 mount / -o remount,size=100%
-echo -e "\nhttps://${alpineHost}/alpine/latest-stable/community/" >> /etc/apk/repositories
+echo "https://${alpineHost}/alpine/latest-stable/community/" >> /etc/apk/repositories
 apk add --no-cache util-linux qemu-img
 mount $disk /mnt
 cp /mnt/reinstall/$imageFile ./
@@ -264,7 +263,7 @@ info "update grub"
 if command -v update-grub &> /dev/null; then
   update-grub && grub-reboot reinstall
 elif command -v grub2-mkconfig  &> /dev/null; then
-  grub2-mkconfig -o /boot/grub2/grub.cfg && grub2-reboot reinstall
+  grub2-mkconfig -o /etc/grub2.cfg && grub2-reboot reinstall
 else
   error "unable to update grub configuration"
 fi

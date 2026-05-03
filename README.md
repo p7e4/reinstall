@@ -1,6 +1,6 @@
 # Reinstall
 
-A simple script reinstall your VPS to major Linux system using cloud image.
+A simple script to reinstall your VPS to major Linux system using cloud image.
 
 ## Features
 
@@ -35,9 +35,7 @@ bash reinstall.sh -p <your_password> -s debian
 # reinstall system to debian and setup ssh key
 bash reinstall.sh -k <your_ssh-key> -s debian
 ```
-
 after reboot, ssh to your server with root user
-
 
 ## Parameters
 
@@ -46,8 +44,7 @@ after reboot, ssh to your server with root user
 | -k       | none         | ssh key authentication    |
 | -p       | none         | password                  |
 | -n       | vm-$(system) | hostname                  |
-| -s       | none         | target system, one of debian/ubuntu/fedora/rocky/almalinux/archlinux |
-
+| -s       | none         | target system, one of debian/ubuntu/fedora/rocky/almalinux/arch |
 
 ## Related Repositories
 

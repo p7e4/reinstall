@@ -6,14 +6,14 @@ A simple script reinstall your VPS to major Linux system using cloud image.
 
 | System        | Version | Image                                             | Size |
 |---------------|---------|---------------------------------------------------|------|
-| Debian        | 13      | debian-13-genericcloud-amd64.qcow2                | 313M |
-| Ubuntu        | 26.04   | resolute-server-cloudimg-amd64.img                | 817M |
-| Fedora        | 44.1.7  | Fedora-Cloud-Base-Generic-44-1.7.x86_64.qcow2     | 556M |
+| Debian        | 13      | debian-13-genericcloud-amd64.qcow2                | 323M |
+| Ubuntu        | 26.04   | resolute-server-cloudimg-amd64.img                | 818M |
+| Fedora        | 44      | Fedora-Cloud-Base-Generic-44-1.7.x86_64.qcow2     | 556M |
 | Rocky         | 10      | Rocky-10-GenericCloud-Base.latest.x86_64.qcow2    | 548M |
-| AlmaLinux     | 10      | AlmaLinux-10-GenericCloud-latest.x86_64.qcow2     | 465M |
-| Archlinux     | rolling | Arch-Linux-x86_64-cloudimg.qcow2                  | 517M |
+| AlmaLinux     | 10      | AlmaLinux-10-GenericCloud-latest.x86_64.qcow2     | 488M |
+| Archlinux     | rolling | Arch-Linux-x86_64-cloudimg.qcow2                  | 525M |
 
-The host system must be **Debian 10/Ubuntu 18** or Rocky Linux 10/AlmaLinux 10 (when target system is not fedora/archlinux), older version might work but not been fully tested.
+The host system must be Debian 10/Ubuntu 18/Fedora 42/Rocky Linux 9(target system not fedora/archlinux)/AlmaLinux 9, older version might work but not been fully tested.
 
 > The minimum memory requirement for the host server should exceed the size of the image, better double.
 

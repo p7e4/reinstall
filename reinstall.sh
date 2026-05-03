@@ -89,7 +89,7 @@ apt:
     - arches: [default]
       uri: https://mirrors.ustc.edu.cn/debian-security/"
   elif [ "$SYSTEM" == "ubuntu" ]; then
-    imgUrl="https://mirrors.nju.edu.cn/ubuntu-cloud-images/resolute/current/resolute-server-cloudimg-amd64.img"
+    imgUrl="https://mirrors.nju.edu.cn/ubuntu-cloud-images/resolute/current/resolute-server-cloudimg-amd64v3.img"
     shaSum="https://mirrors.nju.edu.cn/ubuntu-cloud-images/resolute/current/SHA256SUMS"
     aptMirror="
 apt:
@@ -125,7 +125,7 @@ else
     imgUrl="https://cdimage.debian.org/images/cloud/trixie/latest/debian-13-genericcloud-amd64.qcow2"
     shaSum="https://cdimage.debian.org/images/cloud/trixie/latest/SHA512SUMS"
   elif [ "$SYSTEM" == "ubuntu" ]; then
-    imgUrl="https://cloud-images.ubuntu.com/resolute/current/resolute-server-cloudimg-amd64.img"
+    imgUrl="https://cloud-images.ubuntu.com/resolute/current/resolute-server-cloudimg-amd64v3.img"
     shaSum="https://cloud-images.ubuntu.com/resolute/current/SHA256SUMS"
   elif [ "$SYSTEM" == "fedora" ]; then
     imgUrl="https://download.fedoraproject.org/pub/fedora/linux/releases/44/Cloud/x86_64/images/Fedora-Cloud-Base-Generic-44-1.7.x86_64.qcow2"

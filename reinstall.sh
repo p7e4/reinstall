@@ -5,6 +5,7 @@
 set -e
 info() { echo -e "\e[32m[+] $1\e[0m"; }
 error() { echo -e "\e[31m[!] $1\e[0m"; exit 1; }
+unset PASSWORD SSHKEY SYSTEM hostname aptMirror runcmdDnf sshAuth passAuth runcmdRootLogin
 
 while getopts "p:k:s:n:" opt; do
   case $opt in
@@ -101,12 +102,18 @@ apt:
   elif [ "$SYSTEM" == "fedora" ]; then
     imgUrl="https://mirrors.nju.edu.cn/fedora/releases/44/Cloud/x86_64/images/Fedora-Cloud-Base-Generic-44-1.7.x86_64.qcow2"
     shaSum="https://mirrors.nju.edu.cn/fedora/releases/44/Cloud/x86_64/images/Fedora-Cloud-44-1.7-x86_64-CHECKSUM"
+    runcmdDnf="
+  - sed -i 's|^metalink=|#metalink=|; s|^#baseurl=http://download.example/pub/fedora/linux|baseurl=https://mirrors.ustc.edu.cn/fedora|' /etc/yum.repos.d/fedora.repo /etc/yum.repos.d/fedora-updates.repo"
   elif [ "$SYSTEM" == "rocky" ]; then
     imgUrl="https://mirrors.nju.edu.cn/rocky/10/images/x86_64/Rocky-10-GenericCloud-Base.latest.x86_64.qcow2"
     shaSum="https://mirrors.nju.edu.cn/rocky/10/images/x86_64/CHECKSUM"
+    runcmdDnf="
+  - sed -i 's|^mirrorlist=|#mirrorlist=|; s|^#baseurl=http://dl.rockylinux.org/\$contentdir|baseurl=https://mirrors.ustc.edu.cn/rocky|' /etc/yum.repos.d/*.repo"
   elif [ "$SYSTEM" == "almalinux" ]; then
     imgUrl="https://mirrors.nju.edu.cn/almalinux/10/cloud/x86_64/images/AlmaLinux-10-GenericCloud-latest.x86_64.qcow2"
     shaSum="https://mirrors.nju.edu.cn/almalinux/10/cloud/x86_64/images/CHECKSUM"
+    runcmdDnf="
+  - sed -i 's|^mirrorlist=|#mirrorlist=|; s|^# baseurl=https://repo.almalinux.org|baseurl=https://mirrors.nju.edu.cn|' /etc/yum.repos.d/*.repo"
   elif [ "$SYSTEM" == "archlinux" ]; then
     imgUrl="https://mirrors.nju.edu.cn/archlinux/images/latest/Arch-Linux-x86_64-cloudimg.qcow2"
     shaSum="https://mirrors.nju.edu.cn/archlinux/images/latest/Arch-Linux-x86_64-cloudimg.qcow2.SHA256"
@@ -215,7 +222,7 @@ network:
         use-dns: no
       nameservers:
         addresses: [$dns]
-runcmd:$runcmdRootLogin
+runcmd:$runcmdRootLogin$runcmdDnf
   - sed -i '/^#ClientAliveInterval/c\ClientAliveInterval 30' /etc/ssh/sshd_config
   - systemctl restart sshd\
 $aptMirror$sshAuth$passAuth

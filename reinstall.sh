@@ -5,7 +5,7 @@
 set -e
 info() { echo -e "\e[32m[+] $1\e[0m"; }
 error() { echo -e "\e[31m[!] $1\e[0m"; exit 1; }
-unset PASSWORD SSHKEY SYSTEM hostname aptMirror runcmdDnf sshAuth passAuth runcmdRootLogin
+unset PASSWORD SSHKEY SYSTEM hostname aptMirror runcmdMirror sshAuth passAuth runcmdRootLogin DISTRO_FEDORA
 
 while getopts "p:k:s:n:" opt; do
   case $opt in
@@ -16,13 +16,13 @@ while getopts "p:k:s:n:" opt; do
       SSHKEY=$OPTARG
       ;;
     s)
-      SYSTEM=$OPTARG
+      SYSTEM="${OPTARG,,}"
       ;;
     n)
       hostname=$OPTARG
       ;;
     h | *)
-      info "Usage: $(basename $0) [-p password] [-k ssh-key] [-n hostname] -s debian/ubuntu/fedora/rocky/almalinux/archlinux"
+      info "Usage: $(basename $0) [-p password] [-k ssh-key] [-n hostname] -s debian/ubuntu/fedora/rocky/almalinux/arch"
       exit 0
       ;;
   esac
@@ -36,14 +36,10 @@ if [ "$SSHKEY" ]; then
   [[ ! $SSHKEY =~ ^(ssh-rsa|ssh-dss|ssh-ed25519|ecdsa-sha2-) ]] && error "ssh-key must begin with ssh-rsa/ssh-dss/ssh-ed25519/ecdsa-sha2"
 fi
 
-SYSTEM=$(echo "$SYSTEM" | tr '[:upper:]' '[:lower:]')
-if [[ ! "$SYSTEM" =~ ^(debian|ubuntu|fedora|rocky|almalinux|archlinux)$ ]]; then
-  error "target os must be one of debian, ubuntu, fedora, rocky, almalinux, archlinux"
-fi
-
 DISTRO_ID=$(awk -F= '/^ID=/{gsub(/"/, "", $2); print $2; exit}' /etc/os-release)
-if [[ ! $DISTRO_ID =~ ^(debian|ubuntu|fedora|rocky|almalinux)$ ]]; then
-    error "current os must be one of debian, ubuntu, fedora, rocky, almalinux"
+PATTERN='^(debian|ubuntu|fedora|rocky|almalinux|arch)$'
+if [[ ! "$DISTRO_ID" =~ $PATTERN || ! "$SYSTEM" =~ $PATTERN ]]; then
+  error "current system and target system noth need to be one of debian, ubuntu, fedora, rocky, almalinux, arch"
 fi
 
 if [ "$(id -u)" -ne 0 ]; then
@@ -56,7 +52,7 @@ if [ -z "$hostname" ]; then
   hostname="vm-$SYSTEM"
 fi
 
-if [[ $SYSTEM == "archlinux" || $SYSTEM == "fedora" ]]; then
+if [[ $SYSTEM == "arch" || $SYSTEM == "fedora" ]]; then
   modprobe btrfs
 fi
 
@@ -69,6 +65,8 @@ if command -v apt &> /dev/null; then
   apt update && apt install -y qemu-utils jq whois
 elif command -v dnf &> /dev/null; then
   dnf makecache && dnf install -y qemu-img jq mkpasswd
+elif command -v pacman &> /dev/null; then
+  pacman -Sy --noconfirm qemu-img jq whois cpio
 else
   error "no package manager detected"
 fi
@@ -102,21 +100,23 @@ apt:
   elif [ "$SYSTEM" == "fedora" ]; then
     imgUrl="https://mirrors.nju.edu.cn/fedora/releases/44/Cloud/x86_64/images/Fedora-Cloud-Base-Generic-44-1.7.x86_64.qcow2"
     shaSum="https://mirrors.nju.edu.cn/fedora/releases/44/Cloud/x86_64/images/Fedora-Cloud-44-1.7-x86_64-CHECKSUM"
-    runcmdDnf="
+    runcmdMirror="
   - sed -i 's|^metalink=|#metalink=|; s|^#baseurl=http://download.example/pub/fedora/linux|baseurl=https://mirrors.ustc.edu.cn/fedora|' /etc/yum.repos.d/fedora.repo /etc/yum.repos.d/fedora-updates.repo"
   elif [ "$SYSTEM" == "rocky" ]; then
     imgUrl="https://mirrors.nju.edu.cn/rocky/10/images/x86_64/Rocky-10-GenericCloud-Base.latest.x86_64.qcow2"
     shaSum="https://mirrors.nju.edu.cn/rocky/10/images/x86_64/CHECKSUM"
-    runcmdDnf="
+    runcmdMirror="
   - sed -i 's|^mirrorlist=|#mirrorlist=|; s|^#baseurl=http://dl.rockylinux.org/\$contentdir|baseurl=https://mirrors.ustc.edu.cn/rocky|' /etc/yum.repos.d/*.repo"
   elif [ "$SYSTEM" == "almalinux" ]; then
     imgUrl="https://mirrors.nju.edu.cn/almalinux/10/cloud/x86_64/images/AlmaLinux-10-GenericCloud-latest.x86_64.qcow2"
     shaSum="https://mirrors.nju.edu.cn/almalinux/10/cloud/x86_64/images/CHECKSUM"
-    runcmdDnf="
+    runcmdMirror="
   - sed -i 's|^mirrorlist=|#mirrorlist=|; s|^# baseurl=https://repo.almalinux.org|baseurl=https://mirrors.nju.edu.cn|' /etc/yum.repos.d/*.repo"
-  elif [ "$SYSTEM" == "archlinux" ]; then
+  elif [ "$SYSTEM" == "arch" ]; then
     imgUrl="https://mirrors.nju.edu.cn/archlinux/images/latest/Arch-Linux-x86_64-cloudimg.qcow2"
     shaSum="https://mirrors.nju.edu.cn/archlinux/images/latest/Arch-Linux-x86_64-cloudimg.qcow2.SHA256"
+    runcmdMirror="
+  - echo 'Server = https://mirrors.ustc.edu.cn/archlinux/\$repo/os/\$arch' > /etc/pacman.d/mirrorlist"
   fi
   alpineHost="mirrors.nju.edu.cn"
   dns="223.5.5.5, 223.6.6.6"
@@ -136,7 +136,7 @@ else
   elif [ "$SYSTEM" == "almalinux" ]; then
     imgUrl="https://repo.almalinux.org/almalinux/10/cloud/x86_64/images/AlmaLinux-10-GenericCloud-latest.x86_64.qcow2"
     shaSum="https://repo.almalinux.org/almalinux/10/cloud/x86_64/images/CHECKSUM"
-  elif [ "$SYSTEM" == "archlinux" ]; then
+  elif [ "$SYSTEM" == "arch" ]; then
     imgUrl="https://geo.mirror.pkgbuild.com/images/latest/Arch-Linux-x86_64-cloudimg.qcow2"
     shaSum="https://geo.mirror.pkgbuild.com/images/latest/Arch-Linux-x86_64-cloudimg.qcow2.SHA256"
   fi
@@ -222,14 +222,14 @@ network:
         use-dns: no
       nameservers:
         addresses: [$dns]
-runcmd:$runcmdRootLogin$runcmdDnf
+runcmd:$runcmdRootLogin$runcmdMirror
   - sed -i '/^#ClientAliveInterval/c\ClientAliveInterval 30' /etc/ssh/sshd_config
   - systemctl restart sshd\
 $aptMirror$sshAuth$passAuth
 EOF
 
 # cloud-init network won't work at archlinux
-if [ "$SYSTEM" == "archlinux" ]; then
+if [ "$SYSTEM" == "arch" ]; then
   sed -i "5,16d" $cloudFilePath
 fi
 
@@ -270,8 +270,11 @@ EOF
 info "update grub"
 if command -v update-grub &> /dev/null; then
   update-grub && grub-reboot reinstall
-elif command -v grub2-mkconfig  &> /dev/null; then
+elif command -v grub2-mkconfig &> /dev/null; then
   grub2-mkconfig -o /etc/grub2.cfg && grub2-reboot reinstall
+elif command -v grub-mkconfig &> /dev/null; then
+  sed -i 's|^GRUB_DEFAULT=0|GRUB_DEFAULT=saved|' /etc/default/grub
+  grub-mkconfig -o /boot/grub/grub.cfg && grub-reboot reinstall
 else
   error "unable to update grub configuration"
 fi

@@ -4,8 +4,9 @@ A simple script to reinstall your VPS to major Linux system using cloud image.
 
 ## Features
 
-- **Short & Simple**: under 300 lines of Bash, easy to read and audit
-- **Transparent & Clean**: use official cloud image, all tweaks via `cloud-init`, no hidden changes
+- **short code**: under 300 lines of Bash, easy to read and audit
+- **mirror setup**: automatically set up the system package manager mirror for CN region
+- **cloud image**: use official cloud image, all tweaks via `cloud-init`, no hidden changes
 
 ## System Support
 

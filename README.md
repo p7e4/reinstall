@@ -12,12 +12,12 @@ A simple script to reinstall your VPS to major Linux system using cloud image.
 
 | System    | Version | Image                                          | Size |
 |-----------|---------|------------------------------------------------|------|
-| Debian    | 13      | debian-13-genericcloud-amd64.qcow2             | 323M |
-| Ubuntu    | 26.04   | resolute-server-cloudimg-amd64v3.img           | 818M |
-| Fedora    | 44      | Fedora-Cloud-Base-Generic-44-1.7.x86_64.qcow2  | 556M |
-| Rocky     | 10      | Rocky-10-GenericCloud-Base.latest.x86_64.qcow2 | 548M |
-| AlmaLinux | 10      | AlmaLinux-10-GenericCloud-latest.x86_64.qcow2  | 488M |
-| Archlinux | rolling | Arch-Linux-x86_64-cloudimg.qcow2               | 525M |
+| Debian    | 13      | debian-13-genericcloud-amd64.qcow2             | 325M |
+| Ubuntu    | 26.04   | resolute-server-cloudimg-amd64v3.img           | 821M |
+| Fedora    | 45      | Fedora-Cloud-Base-Generic-45-1.4.x86_64.qcow2  | 578M |
+| Rocky     | 10      | Rocky-10-GenericCloud-Base.latest.x86_64.qcow2 | 519M |
+| AlmaLinux | 10      | AlmaLinux-10-GenericCloud-latest.x86_64.qcow2  | 474M |
+| Archlinux | rolling | Arch-Linux-x86_64-cloudimg.qcow2               | 549M |
 
 The host system require **Debian 10/Ubuntu 18/Fedora 42/Rocky Linux 9(target system not fedora/archlinux)/AlmaLinux 9/archlinux and above**, older version might work but not been fully tested.
 

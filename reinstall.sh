@@ -2,7 +2,7 @@
 # https://github.com/p7e4/reinstall
 # https://cdn.jsdelivr.net/gh/p7e4/reinstall/reinstall.sh
 
-set -e
+set -eo pipefail
 info() { echo -e "\e[32m[+] $1\e[0m"; }
 error() { echo -e "\e[31m[!] $1\e[0m"; exit 1; }
 unset PASSWORD SSHKEY SYSTEM hostname aptMirror runcmdMirror sshAuth passAuth runcmdRootLogin DISTRO_FEDORA
@@ -71,7 +71,7 @@ else
   error "no package manager detected"
 fi
 
-country=$(curl -s "https://ipinfo.io/" | jq -r ".country")
+country=$(curl -fs "https://ipinfo.io/" | jq -r ".country")
 info "server location code: $country"
 
 if [ "$country" == "CN" ]; then
@@ -98,8 +98,8 @@ apt:
     Components: main universe restricted multiverse
     Signed-By: /usr/share/keyrings/ubuntu-archive-keyring.gpg"
   elif [ "$SYSTEM" == "fedora" ]; then
-    imgUrl="https://mirrors.nju.edu.cn/fedora/releases/44/Cloud/x86_64/images/Fedora-Cloud-Base-Generic-44-1.7.x86_64.qcow2"
-    shaSum="https://mirrors.nju.edu.cn/fedora/releases/44/Cloud/x86_64/images/Fedora-Cloud-44-1.7-x86_64-CHECKSUM"
+    imgUrl="https://mirrors.nju.edu.cn/fedora/releases/45/Cloud/x86_64/images/Fedora-Cloud-Base-Generic-45-1.4.x86_64.qcow2"
+    shaSum="https://mirrors.nju.edu.cn/fedora/releases/45/Cloud/x86_64/images/Fedora-Cloud-45-1.4-x86_64-CHECKSUM"
     runcmdMirror="
   - sed -i 's|^metalink=|#metalink=|; s|^#baseurl=http://download.example/pub/fedora/linux|baseurl=https://mirrors.ustc.edu.cn/fedora|' /etc/yum.repos.d/fedora.repo /etc/yum.repos.d/fedora-updates.repo"
   elif [ "$SYSTEM" == "rocky" ]; then
@@ -128,8 +128,8 @@ else
     imgUrl="https://cloud-images.ubuntu.com/resolute/current/resolute-server-cloudimg-amd64v3.img"
     shaSum="https://cloud-images.ubuntu.com/resolute/current/SHA256SUMS"
   elif [ "$SYSTEM" == "fedora" ]; then
-    imgUrl="https://download.fedoraproject.org/pub/fedora/linux/releases/44/Cloud/x86_64/images/Fedora-Cloud-Base-Generic-44-1.7.x86_64.qcow2"
-    shaSum="https://download.fedoraproject.org/pub/fedora/linux/releases/44/Cloud/x86_64/images/Fedora-Cloud-44-1.7-x86_64-CHECKSUM"
+    imgUrl="https://download.fedoraproject.org/pub/fedora/linux/releases/45/Cloud/x86_64/images/Fedora-Cloud-Base-Generic-45-1.4.x86_64.qcow2"
+    shaSum="https://download.fedoraproject.org/pub/fedora/linux/releases/45/Cloud/x86_64/images/Fedora-Cloud-45-1.4-x86_64-CHECKSUM"
   elif [ "$SYSTEM" == "rocky" ]; then
     imgUrl="https://dl.rockylinux.org/pub/rocky/10/images/x86_64/Rocky-10-GenericCloud-Base.latest.x86_64.qcow2"
     shaSum="https://dl.rockylinux.org/pub/rocky/10/images/x86_64/CHECKSUM"
@@ -148,20 +148,20 @@ rm -rf /reinstall
 mkdir /reinstall && cd /reinstall
 
 info "start download vmlinuz"
-curl -o vmlinuz https://$alpineHost/alpine/latest-stable/releases/x86_64/netboot/vmlinuz-virt
+curl -fo vmlinuz https://$alpineHost/alpine/latest-stable/releases/x86_64/netboot/vmlinuz-virt
 info "start download initrd"
-curl -o initrd https://$alpineHost/alpine/latest-stable/releases/x86_64/netboot/initramfs-virt
+curl -fo initrd https://$alpineHost/alpine/latest-stable/releases/x86_64/netboot/initramfs-virt
 info "start download image form $imgUrl"
-curl -OLA reinstall $imgUrl
+curl -fOLA reinstall $imgUrl
 imageFile=$(basename $imgUrl)
 
 if [ "$shaSum" ]; then
   info "verify image hash"
-  curl -A reinstall -o SHASUMS $shaSum
+  curl -fA reinstall -o SHASUMS $shaSum
   if [ "$SYSTEM" == "debian" ]; then
-    sha512sum -c SHASUMS --ignore-missing || error "$imageFile hash verify faile!"
+    sha512sum -c SHASUMS --ignore-missing || error "$imageFile checksum verification failed!"
   else
-    sha256sum -c SHASUMS --ignore-missing || error "$imageFile hash verify faile!"
+    sha256sum -c SHASUMS --ignore-missing || error "$imageFile checksum verification failed!"
   fi
   rm -f SHASUMS
 fi
